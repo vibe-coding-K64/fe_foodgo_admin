@@ -1,0 +1,277 @@
+================================================================================
+TÀI LIỆU THIẾT KẾ LỚP HƯỚNG ĐỐI TƯỢNG (OOP CLASS DIAGRAM)
+TỔNG SỐ: 43 CLASSES (Bao gồm Base Class, Kế thừa và Class thực thể)
+================================================================================
+
+--------------------------------------------------------------------------------
+0. NHÓM LỚP CƠ SỞ (BASE CLASSES) - Kế thừa chung cho toàn hệ thống
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Thuộc tính (Property) | Kiểu Dữ liệu | Mô tả chi tiết                       |
+|---------------------|-----------------------|--------------|--------------------------------------|
+| BaseEntity          | Id                    | Guid         | Khóa chính định danh.                |
+| (Có xóa mềm)        | CreatedAt             | DateTime     | Thời gian tạo bản ghi.               |
+|                     | UpdatedAt             | DateTime?    | Thời gian cập nhật gần nhất.         |
+|                     | DeletedAt             | DateTime?    | Thời gian xóa mềm (Soft Delete).     |
+|---------------------|-----------------------|--------------|--------------------------------------|
+| EntityWithUpdate    | Id                    | Guid         | Khóa chính định danh.                |
+| (Cấm xóa mềm)       | CreatedAt             | DateTime     | Thời gian tạo bản ghi.               |
+|                     | UpdatedAt             | DateTime?    | Thời gian cập nhật gần nhất.         |
+|---------------------|-----------------------|--------------|--------------------------------------|
+| ImmutableEntity     | Id                    | Guid         | Khóa chính định danh.                |
+| (Bất biến, cấm sửa) | CreatedAt             | DateTime     | Thời gian tạo sự kiện (Log).         |
+
+--------------------------------------------------------------------------------
+1. PHÂN HỆ NGƯỜI DÙNG & HỒ SƠ (USERS & PROFILES)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| User                | <BaseEntity>     | Phone                 | String             | (Bắt buộc) Tên đăng nhập/Liên lạc.   |
+| (Lớp cha)           |                  | PasswordHash          | String             | (Bắt buộc) Mật khẩu đã băm.          |
+|                     |                  | FullName              | String             | Tên hiển thị trên App.               |
+|                     |                  | Email                 | String?            | Email liên hệ (Admin/Quán bắt buộc). |
+|                     |                  | Avatar                | Media              | Ảnh đại diện.                        |
+|                     |                  | Status                | int                | (0: Inactive, 1: Active, 2: Banned). |
+|                     |                  | IsPhoneVerified       | bool               | Cờ xác nhận đã nhập mã OTP.          |
+|                     |                  | Settings              | UserSettings       | Cấu hình giao diện cá nhân.          |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Customer            | <User>           | LoyaltyPoints         | int                | Điểm thưởng tích lũy.                |
+|                     |                  | Addresses             | List<Address>      | Sổ địa chỉ giao hàng.                |
+|                     |                  | FavoriteStores        | List<Store>        | Danh sách quán ăn yêu thích.         |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Merchant            | <User>           | TaxCode               | String             | Mã số thuế doanh nghiệp.             |
+|                     |                  | BusinessLicense       | Media              | Ảnh Giấy phép kinh doanh.            |
+|                     |                  | MyStore               | Store              | Gian hàng sở hữu.                    |
+|                     |                  | PayoutAccount         | BankAccount        | Thẻ ngân hàng nhận tiền đối soát.    |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Driver              | <User>           | LicenseNumber         | String             | Số Giấy phép lái xe.                 |
+|                     |                  | DriverStatus          | int                | (0: Offline, 1: Online, 2: Busy).    |
+|                     |                  | MyVehicle             | Vehicle            | Thông tin xe máy đang chạy.          |
+|                     |                  | IdentityProfile       | EkycProfile        | Hồ sơ CCCD điện tử.                  |
+|                     |                  | Wallets               | List<Wallet>       | Danh sách ví (Cọc, Thu nhập).        |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Admin               | <User>           | EmployeeId            | String             | Mã nhân sự nội bộ công ty.           |
+|                     |                  | AdminRole             | Role               | Quyền quản trị viên.                 |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Role                | <BaseEntity>     | Name                  | String             | Tên chức danh (VD: Kế toán).         |
+|                     |                  | Description           | String             | Mô tả nhiệm vụ vai trò.              |
+|                     |                  | Permissions           | List<String>       | Mảng mã quyền ["orders.view"].       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Address             | <BaseEntity>     | Street                | String             | Tên đường, số nhà.                   |
+|                     |                  | Ward                  | String             | Phường/Xã.                           |
+|                     |                  | City                  | String             | Tỉnh/Thành phố.                      |
+|                     |                  | Latitude              | double             | Tọa độ Vĩ độ.                        |
+|                     |                  | Longitude             | double             | Tọa độ Kinh độ.                      |
+|                     |                  | Label                 | String             | Nhãn (VD: "Nhà riêng").              |
+|                     |                  | IsDefault             | bool               | Cờ địa chỉ mặc định.                 |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Vehicle             | <BaseEntity>     | LicensePlate          | String             | Biển số xe.                          |
+|                     |                  | VehicleType           | String             | Loại xe (VD: Honda AirBlade).        |
+|                     |                  | Color                 | String             | Màu sắc xe.                          |
+|                     |                  | RegistrationImage     | Media              | Ảnh Cà vẹt xe.                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| BankAccount         | <BaseEntity>     | BankName              | String             | Tên ngân hàng.                       |
+|                     |                  | Branch                | String             | Tên chi nhánh.                       |
+|                     |                  | AccountNumber         | String             | Số tài khoản.                        |
+|                     |                  | AccountName           | String             | Tên in trên thẻ (Viết hoa không dấu).|
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| EkycProfile         | <EntityWithUpdate>IdCardNumber          | String             | Số Căn cước công dân.                |
+|                     |                  | IdCardFront           | Media              | Ảnh CCCD mặt trước.                  |
+|                     |                  | IdCardBack            | Media              | Ảnh CCCD mặt sau.                    |
+|                     |                  | Portrait              | Media              | Ảnh chân dung khuôn mặt.             |
+|                     |                  | Status                | int                | (0: Pending, 1: Approved, 2: Reject).|
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Session             | <EntityWithUpdate>RefreshToken          | String             | Mã Token gia hạn phiên đăng nhập.    |
+|                     |                  | DeviceIP              | String             | Địa chỉ IP thiết bị.                 |
+|                     |                  | ExpiresAt             | DateTime           | Thời điểm hết hạn Token.             |
+|                     |                  | IsActive              | bool               | Phiên còn hiệu lực không?            |
+
+--------------------------------------------------------------------------------
+2. PHÂN HỆ THƯ VIỆN & CẤU HÌNH (MEDIA & SYSTEM)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Media               | <BaseEntity>     | OriginalFileName      | String             | Tên gốc của file khi tải lên.        |
+|                     |                  | SavedFileName         | String             | Tên UUID lưu trên Cloud.             |
+|                     |                  | Url                   | String             | Đường dẫn CDN tuyệt đối.             |
+|                     |                  | MimeType              | String             | Định dạng (VD: image/webp).          |
+|                     |                  | MediaType             | int                | (1: Avatar, 2: Product, 3: CCCD).    |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| SystemConfig        | <EntityWithUpdate>Key                   | String             | Mã cấu hình (VD: BaseDeliveryFee).   |
+|                     |                  | Value                 | String             | Giá trị cấu hình.                    |
+|                     |                  | Description           | String             | Mô tả cho Admin dễ hiểu.             |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| UserSettings        | <EntityWithUpdate>UserId                | Guid               | Cài đặt của người dùng nào.          |
+|                     |                  | ThemeMode             | int                | (0: Light, 1: Dark).                 |
+|                     |                  | IsPushEnabled         | bool               | Cờ nhận thông báo Push.              |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| ActivityLog         | <ImmutableEntity>| UserId                | Guid               | ID Admin thao tác.                   |
+|                     |                  | ActionType            | int                | (1: Create, 2: Update, 3: Delete).   |
+|                     |                  | EntityName            | String             | Tên bảng bị sửa đổi.                 |
+|                     |                  | OldValues             | String             | Chuỗi JSON dữ liệu trước khi sửa.    |
+|                     |                  | NewValues             | String             | Chuỗi JSON dữ liệu sau khi sửa.      |
+|                     |                  | IpAddress             | String             | IP máy tính thao tác.                |
+
+--------------------------------------------------------------------------------
+3. PHÂN HỆ GIAN HÀNG & THỰC ĐƠN (STORE & MENU)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Store               | <BaseEntity>     | MerchantId            | Guid               | ID Chủ quán quản lý.                 |
+|                     |                  | Name                  | String             | Tên hiển thị của quán.               |
+|                     |                  | Description           | String             | Giới thiệu ngắn về quán.             |
+|                     |                  | Address               | String             | Địa chỉ mặt bằng kinh doanh.         |
+|                     |                  | Latitude              | double             | Vĩ độ bản đồ.                        |
+|                     |                  | Longitude             | double             | Kinh độ bản đồ.                      |
+|                     |                  | Logo                  | Media              | Ảnh Avatar tròn của quán.            |
+|                     |                  | CoverImage            | Media              | Ảnh bìa ngang của quán.              |
+|                     |                  | IsAcceptingOrders     | bool               | Cờ Bật/Tắt nhận đơn khẩn cấp.        |
+|                     |                  | OperatingHours        | List<StoreSchedule>| Danh sách lịch mở cửa.               |
+|                     |                  | CustomCategories      | List<StoreCategory>| Các danh mục do TỰ QUÁN TẠO.         |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| StoreSchedule       | <BaseEntity>     | DayOfWeek             | int                | (0: CN, 1: T2 ... 6: T7).            |
+|                     |                  | OpenTime              | TimeSpan           | Giờ bắt đầu mở.                      |
+|                     |                  | CloseTime             | TimeSpan           | Giờ đóng cửa.                        |
+|                     |                  | IsClosed              | bool               | Ngày này quán có bán không?          |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Category            | <BaseEntity>     | Name                  | String             | Tên danh mục.                        |
+| (Lớp cha Danh mục)  |                  | DisplayOrder          | int                | Số thứ tự ưu tiên hiển thị.          |
+|                     |                  | Products              | List<Product>      | Danh sách món trong nhóm.            |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| SystemCategory      | <Category>       | Icon                  | Media              | Bắt buộc có Icon hiển thị Trang chủ. |
+| (Danh mục Admin)    |                  |                       |                    |                                      |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| StoreCategory       | <Category>       | StoreId               | Guid               | Bắt buộc gắn với ID Quán tạo ra nó.  |
+| (Danh mục Quán)     |                  |                       |                    |                                      |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Product             | <BaseEntity>     | Category              | Category           | Đa hình: Thuộc nhóm Admin hay Quán.  |
+|                     |                  | Name                  | String             | Tên món ăn.                          |
+|                     |                  | Description           | String             | Chi tiết thành phần món.             |
+|                     |                  | BasePrice             | double             | Giá gốc niêm yết.                    |
+|                     |                  | Image                 | Media              | Hình ảnh minh họa món.               |
+|                     |                  | IsOutOfStock          | bool               | Cờ báo hết hàng tạm thời.            |
+|                     |                  | OptionGroups          | List<OptionGroup>  | Các nhóm Size, Topping đi kèm.       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| OptionGroup         | <BaseEntity>     | Name                  | String             | Tên nhóm (VD: "Chọn mức đá").        |
+|                     |                  | IsRequired            | bool               | Có bắt buộc phải tick không?         |
+|                     |                  | MaxChoices            | int                | Số lượng Topping tick tối đa.        |
+|                     |                  | Options               | List<ProductOption>| Danh sách các Topping bên trong.     |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| ProductOption       | <BaseEntity>     | Name                  | String             | Tên Topping (VD: "50% Đá").          |
+|                     |                  | AdditionalPrice       | double             | Tiền cộng thêm nếu chọn.             |
+|                     |                  | IsOutOfStock          | bool               | Topping này hết hàng chưa?           |
+
+--------------------------------------------------------------------------------
+4. PHÂN HỆ GIỎ HÀNG & ĐẶT HÀNG (CART & ORDER)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Cart                | <EntityWithUpdate>CustomerId            | Guid               | Khách hàng sở hữu giỏ.               |
+|                     |                  | StoreId               | Guid               | Mua ở quán nào.                      |
+|                     |                  | TotalPrice            | double             | Tổng tiền tạm tính.                  |
+|                     |                  | Items                 | List<CartItem>     | Dữ liệu món (Sẽ lưu dạng JSON).      |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| CartItem            | (Lớp Helper)     | ProductId             | Guid               | ID món gốc.                          |
+|                     |                  | ProductName           | String             | Tên món để hiển thị nhanh.           |
+|                     |                  | BasePrice             | double             | Giá món chưa kèm Topping.            |
+|                     |                  | CalculatedPrice       | double             | Giá món + Topping (của 1 phần).      |
+|                     |                  | Quantity              | int                | Khách mua mấy phần.                  |
+|                     |                  | ItemNote              | String             | Ghi chú riêng.                       |
+|                     |                  | SelectedOptions       | List<OptionJson>   | Topping đã chọn (Dạng JSON).         |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Order               | <EntityWithUpdate>OrderCode              | String              | Mã ngắn gọn dễ đọc (VD: OD-123).     |
+|                     |                  | BuyerId               | Guid               | ID Khách.                            |
+|                     |                  | ShopId                | Guid               | ID Quán.                             |
+|                     |                  | ShipperId             | Guid?              | ID Tài xế (Null khi chưa có người).  |
+|                     |                  | TotalAmount           | double             | Tổng tiền các món ăn.                |
+|                     |                  | DeliveryFee           | double             | Cước phí giao hàng.                  |
+|                     |                  | DiscountAmount        | double             | Tiền được Voucher giảm giá.          |
+|                     |                  | FinalAmount           | double             | Số tiền thực tế khách phải trả.      |
+|                     |                  | Status                | int                | Trạng thái (0: Pending -> 6: Cancel).|
+|                     |                  | DeliveryAddress       | Address            | Bản sao địa chỉ lúc đặt hàng.        |
+|                     |                  | AppliedVoucher        | Voucher            | Khuyến mãi đã sử dụng.               |
+|                     |                  | Details               | List<OrderDetail>  | Các món chốt trong đơn.              |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| OrderDetail         | <ImmutableEntity>| ProductId             | Guid               | ID món gốc.                          |
+|                     |                  | Quantity              | int                | Số lượng đã đặt.                     |
+|                     |                  | UnitPrice             | double             | Đơn giá chốt cứng lúc đặt.           |
+|                     |                  | ItemNote              | String             | Lời nhắn riêng cho món này.          |
+|                     |                  | SelectedOptions       | List<OptionJson>   | Topping chốt cứng (Lưu JSON).        |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| LocationLog         | <ImmutableEntity>| DriverId              | Guid               | ID Tài xế.                           |
+|                     |                  | OrderId               | Guid               | Đang giao đơn nào.                   |
+|                     |                  | Latitude              | double             | Vĩ độ hiện tại.                      |
+|                     |                  | Longitude             | double             | Kinh độ hiện tại.                    |
+
+--------------------------------------------------------------------------------
+5. PHÂN HỆ TÀI CHÍNH & THANH TOÁN (FINANCE & PAYMENT)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| PaymentMethod       | <BaseEntity>     | Name                  | String             | Tên phương thức (VD: "Tiền mặt").    |
+|                     |                  | ProviderType          | int                | (1: Cash, 2: MoMo, 3: ZaloPay).      |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Voucher             | <BaseEntity>     | StoreId               | Guid?              | Chủ sở hữu mã (Null = Sàn tạo).      |
+|                     |                  | Code                  | String             | Chuỗi mã tự nhập (VD: FREESHIP).     |
+|                     |                  | DiscountType          | int                | (1: %, 2: Tiền mặt).                 |
+|                     |                  | DiscountValue         | double             | Giá trị giảm.                        |
+|                     |                  | MinOrderValue         | double             | Đơn tối thiểu để áp dụng mã.         |
+|                     |                  | ExpiryDate            | DateTime           | Ngày hết hạn mã.                     |
+|                     |                  | UsageLimit            | int                | Số lượt được phép nhập.              |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Wallet              | <EntityWithUpdate>UserId                | Guid               | Ví của ai.                           |
+|                     |                  | WalletType            | int                | (1: Cọc, 2: Thu nhập, 3: Doanh thu). |
+|                     |                  | Balance               | double             | Số dư khả dụng hiện tại.             |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Transaction         | <ImmutableEntity>| WalletId              | Guid               | Giao dịch xảy ra trên ví nào.        |
+|                     |                  | Amount                | double             | Số tiền.                             |
+|                     |                  | TransactionType       | int                | (1: Credit/Cộng, 2: Debit/Trừ).      |
+|                     |                  | Reason                | String             | Ghi chú sao kê.                      |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Withdrawal          | <EntityWithUpdate>WalletId              | Guid               | Rút tiền từ ví nào.                  |
+|                     |                  | BankAccountId         | Guid               | Số tài khoản ngân hàng thụ hưởng.    |
+|                     |                  | Amount                | double             | Số tiền yêu cầu rút.                 |
+|                     |                  | Status                | int                | (0: Pending, 1: Approved, 2: Reject).|
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| WebhookLog          | <ImmutableEntity>| Provider              | String             | Cổng trả về (VD: "MoMo").            |
+|                     |                  | TransactionId         | String             | Mã giao dịch phía MoMo.              |
+|                     |                  | RawPayload            | String             | Chuỗi JSON nguyên bản đối soát.      |
+|                     |                  | Status                | int                | (0: Failed, 1: Success).             |
+
+--------------------------------------------------------------------------------
+6. PHÂN HỆ TƯƠNG TÁC & HỖ TRỢ (INTERACTION & SUPPORT)
+--------------------------------------------------------------------------------
+| Lớp (Class)         | Lớp Kế thừa      | Thuộc tính (Property) | Kiểu Dữ liệu       | Mô tả chi tiết                       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| ChatRoom            | <BaseEntity>     | OrderId               | Guid               | Nhóm Chat thuộc đơn hàng nào.        |
+|                     |                  | RoomType              | int                | (1: Khách-Tài xế, 2: Khách-Quán).    |
+|                     |                  | Participants          | List<User>         | Những User đang trong phòng chat.    |
+|                     |                  | Messages              | List<Message>      | Dữ liệu tin nhắn.                    |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Message             | <ImmutableEntity>| SenderId              | Guid               | Ai là người gửi.                     |
+|                     |                  | Content               | String             | Nội dung chữ.                        |
+|                     |                  | Attachment            | Media              | Ảnh đính kèm (nếu có).               |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Review              | <BaseEntity>     | OrderId               | Guid               | Đánh giá sau khi mua đơn nào.        |
+|                     |                  | TargetStoreId         | Guid               | Đánh giá cho Quán nào.               |
+|                     |                  | Rating                | int                | Số sao (1-5).                        |
+|                     |                  | Comment               | String             | Ý kiến bình luận.                    |
+|                     |                  | AttachedImages        | List<Media>        | Hình ảnh thực tế khách chụp.         |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| ReviewReply         | <BaseEntity>     | ReviewId              | Guid               | Trả lời cho Đánh giá nào.            |
+|                     |                  | MerchantId            | Guid               | Ai là người viết (Chủ quán).         |
+|                     |                  | ReplyContent          | String             | Lời xin lỗi/cảm ơn.                  |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| ReportTicket        | <EntityWithUpdate>OrderId               | Guid               | Khiếu nại xảy ra ở đơn nào.          |
+|                     |                  | ReporterId            | Guid               | Ai là người gửi kiện.                |
+|                     |                  | ReasonType            | int                | (1: Thiếu món, 2: Hư hỏng...).       |
+|                     |                  | Description           | String             | Tường trình sự việc.                 |
+|                     |                  | Status                | int                | (0: Open, 1: Processing, 2: Resolved)|
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| Notification        | <ImmutableEntity>| Title                 | String             | Tiêu đề hiển thị ngoài khóa.         |
+|                     |                  | Body                  | String             | Chi tiết nội dung.                   |
+|                     |                  | ActionUrl             | String             | Deep link điều hướng trên App.       |
+|---------------------|------------------|-----------------------|--------------------|--------------------------------------|
+| UserNotif           | <EntityWithUpdate>NotificationId        | Guid               | ID của thông báo gốc.                |
+|                     |                  | UserId                | Guid               | Nằm trong hộp thư của User nào.      |
+|                     |                  | IsRead                | bool               | Khách đã click xem hay chưa.         |
+================================================================================
