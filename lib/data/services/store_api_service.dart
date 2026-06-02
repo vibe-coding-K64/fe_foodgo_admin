@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
 import '../models/store_model.dart';
-import 'api_constants.dart';
+import 'api_client.dart';
 
 class StoreApiService {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  ));
+  final Dio _dio = ApiClient().dio;
 
   // Lấy thông tin quán theo ID
   Future<Store> getStoreById(String id) async {
