@@ -267,10 +267,6 @@ class _StoreFormPageState extends State<StoreFormPage> {
     );
   }
 
-  Widget _imagePicker(String label, String hint) {
-    return const SizedBox(); // Not used anymore, replaced by URL fields
-  }
-
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);

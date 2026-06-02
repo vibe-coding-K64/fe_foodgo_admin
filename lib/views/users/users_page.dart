@@ -61,7 +61,6 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
 
   Future<void> _toggleUserStatus(Map<String, dynamic> user) async {
     final userId = user['id']?.toString() ?? '';
-    final currentStatus = user['isActive'] == true;
 
     try {
       final newStatus = await _userApiService.toggleUserActive(userId);

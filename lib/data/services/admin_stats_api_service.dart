@@ -1,12 +1,8 @@
 import 'package:dio/dio.dart';
-import 'api_constants.dart';
+import 'api_client.dart';
 
 class AdminStatsApiService {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-  ));
+  final Dio _dio = ApiClient().dio;
 
   String _handleError(dynamic e) {
     if (e is DioException) {

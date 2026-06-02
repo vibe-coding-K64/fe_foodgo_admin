@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/order_model.dart';
 import '../../data/services/order_api_service.dart';
-import '../../data/services/auth_service.dart';
 import 'order_detail_page.dart';
 
 class OrdersPage extends StatefulWidget {
@@ -15,7 +14,6 @@ class OrdersPage extends StatefulWidget {
 
 class _OrdersPageState extends State<OrdersPage> {
   final OrderApiService _apiService = OrderApiService();
-  final AuthService _authService = AuthService();
   String _filterStatus = 'Tất cả';
   final List<String> _statuses = ['Tất cả', 'Chờ xác nhận', 'Đang chế biến', 'Đang giao', 'Hoàn thành', 'Đã hủy'];
   int _currentPage = 1;

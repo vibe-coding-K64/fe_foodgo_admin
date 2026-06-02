@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/voucher_model.dart';
 import '../../data/services/voucher_api_service.dart';
-import '../../data/services/auth_service.dart';
 
 /// Form dùng chung thêm/sửa voucher
 class VoucherFormPage extends StatefulWidget {
@@ -18,7 +17,6 @@ class VoucherFormPage extends StatefulWidget {
 
 class _VoucherFormPageState extends State<VoucherFormPage> {
   final VoucherApiService _apiService = VoucherApiService();
-  final AuthService _authService = AuthService();
   final _formKey = GlobalKey<FormState>();
   final _codeCtrl = TextEditingController();
   final _valueCtrl = TextEditingController();

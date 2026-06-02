@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../data/models/voucher_model.dart';
 import '../../data/services/voucher_api_service.dart';
-import '../../data/services/auth_service.dart';
 import 'voucher_add_edit_page.dart';
 
 class VouchersPage extends StatefulWidget {
@@ -15,7 +13,6 @@ class VouchersPage extends StatefulWidget {
 
 class _VouchersPageState extends State<VouchersPage> {
   final VoucherApiService _apiService = VoucherApiService();
-  final AuthService _authService = AuthService();
   List<Voucher> _vouchers = [];
   bool _isLoading = true;
 
