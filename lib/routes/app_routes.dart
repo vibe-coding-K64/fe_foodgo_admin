@@ -16,10 +16,12 @@ import '../views/notifications/notifications_page.dart';
 import '../views/report_tickets/report_tickets_page.dart';
 import '../views/profile/profile_page.dart';
 import '../views/profile/settings_page.dart';
+import '../views/settings/system_config_page.dart';
 import '../views/categorys/category_page.dart';
 import '../views/banners/banners_page.dart';
 import '../views/users/users_page.dart';
 import '../views/store/stores_admin_page.dart';
+import '../views/drivers/drivers_page.dart';
 
 class AppRouterDelegate extends RouterDelegate<String>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<String> {
@@ -48,8 +50,9 @@ class AppRouterDelegate extends RouterDelegate<String>
           },
         );
         break;
-
-      // 2. Nội dung
+      case "/drivers":
+        page = const DriversPage();
+        break;
       case "/menu-categories":
         page = MenuCategoryPage(
           onNavigate: (path) {
@@ -143,7 +146,7 @@ class AppRouterDelegate extends RouterDelegate<String>
         );
         break;
       case "/settings":
-        page = const SettingsPage();
+        page = const SystemConfigPage();
         break;
       case "/users":
         page = UsersPage(
