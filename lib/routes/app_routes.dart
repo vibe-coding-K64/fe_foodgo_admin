@@ -12,7 +12,6 @@ import '../views/finance/transaction_page.dart';
 import '../views/finance/withdrawal_page.dart';
 import '../views/reviews/reviews_page.dart';
 import '../views/chat/chat_page.dart';
-import '../views/notifications/notifications_page.dart';
 import '../views/report_tickets/report_tickets_page.dart';
 import '../views/profile/profile_page.dart';
 import '../views/profile/settings_page.dart';
@@ -128,10 +127,6 @@ class AppRouterDelegate extends RouterDelegate<String>
       // 5. Hỗ trợ
       case "/chat":
         page = const ChatPage();
-        break;
-      case "/notifications":
-        page = const NotificationsPage();
-        break;
       case "/report-tickets":
         page = const ReportTicketsPage();
         break;
@@ -173,6 +168,7 @@ class AppRouterDelegate extends RouterDelegate<String>
             key: navigatorKey,
             pages: [
               MaterialPage(
+                key: const ValueKey("login_page"),
                 child: LoginPage(
                   onLoginSuccess: () {
                     _currentPath = "/dashboard";
@@ -189,6 +185,7 @@ class AppRouterDelegate extends RouterDelegate<String>
           key: navigatorKey,
           pages: [
             MaterialPage(
+              key: const ValueKey("admin_layout_page"),
               child: AdminLayout(
                 currentRoute: _currentPath,
                 onNavigate: (path) {

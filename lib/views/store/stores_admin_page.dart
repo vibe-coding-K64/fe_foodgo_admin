@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../data/models/store_model.dart';
 import '../../data/services/store_api_service.dart';
+import '../../data/services/review_api_service.dart';
 
 class StoresAdminPage extends StatefulWidget {
   final Function(String)? onNavigate;
@@ -381,6 +383,30 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
+                    InkWell(
+                      onTap: () => _showStoreReviews(store),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
+                            const SizedBox(width: 3),
+                            Text(
+                              '${store.rating?.toStringAsFixed(1) ?? '0.0'} (${store.reviewCount ?? 0} đánh giá)',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFFF6B35),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -525,6 +551,318 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showStoreReviews(Store store) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: 700,
+            height: 650,
+            padding: const EdgeInsets.all(24),
+            child: StoreReviewsDialogContent(store: store),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class StoreReviewsDialogContent extends StatefulWidget {
+  final Store store;
+  const StoreReviewsDialogContent({super.key, required this.store});
+
+  @override
+  State<StoreReviewsDialogContent> createState() => _StoreReviewsDialogContentState();
+}
+
+class _StoreReviewsDialogContentState extends State<StoreReviewsDialogContent> {
+  final ReviewApiService _reviewApiService = ReviewApiService();
+  List<Map<String, dynamic>> _reviews = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final list = await _reviewApiService.getReviewsByStore(widget.store.id!);
+      setState(() {
+        _reviews = list;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Không thể tải đánh giá: $e';
+      });
+    }
+  }
+
+  Future<void> _deleteReview(String id) async {
+    try {
+      final success = await _reviewApiService.deleteReview(id);
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xóa đánh giá thành công!'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _fetchReviews();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi xóa đánh giá: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _confirmDelete(String id, String userName) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa đánh giá của "$userName"? Hành động này không thể hoàn tác.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteReview(id);
+            },
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Đánh giá - ${widget.store.name}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${widget.store.rating?.toStringAsFixed(1) ?? '—'} (${_reviews.length} đánh giá)',
+                        style: const TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+        const Divider(height: 24),
+        // Content
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35)))
+              : _errorMessage != null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: _fetchReviews,
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35), foregroundColor: Colors.white),
+                            child: const Text('Thử lại'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : _reviews.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.star_outline_rounded, size: 48, color: Colors.grey.shade300),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Chưa có đánh giá nào cho cửa hàng này!',
+                                style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          itemCount: _reviews.length,
+                          separatorBuilder: (_, __) => const Divider(height: 24),
+                          itemBuilder: (context, index) {
+                            final review = _reviews[index];
+                            final id = review['id']?.toString() ?? '';
+                            final userName = review['userName']?.toString() ?? 'Ẩn danh';
+                            final userAvatar = review['userAvatarUrl']?.toString();
+                            final starRating = (review['starRating'] as num?)?.toInt() ?? 5;
+                            final comment = review['comment']?.toString() ?? '';
+                            final imageUrls = review['imageUrls'] as List? ?? [];
+                            final createdAt = review['createdAt'];
+
+                            String dateStr = 'Mới đây';
+                            if (createdAt != null) {
+                              try {
+                                final parsed = DateTime.parse(createdAt.toString());
+                                dateStr = DateFormat('dd/MM/yyyy HH:mm').format(parsed);
+                              } catch (_) {}
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: const Color(0xFFFFF3E0),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(18),
+                                        child: userAvatar != null && userAvatar.isNotEmpty && !userAvatar.contains('example.com')
+                                            ? Image.network(
+                                                userAvatar,
+                                                width: 36,
+                                                height: 36,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) => Text(userName.isEmpty ? '?' : userName[0].toUpperCase()),
+                                              )
+                                            : Text(
+                                                userName.isEmpty ? '?' : userName[0].toUpperCase(),
+                                                style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold),
+                                              ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E1E2D))),
+                                          Text(dateStr, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+                                        ],
+                                      ),
+                                    ),
+                                    Row(
+                                      children: List.generate(5, (i) => Icon(
+                                        i < starRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                                        color: Colors.amber,
+                                        size: 16,
+                                      )),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                                      onPressed: () => _confirmDelete(id, userName),
+                                      tooltip: 'Xóa đánh giá vi phạm',
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 46),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(comment, style: const TextStyle(fontSize: 13, height: 1.4, color: Color(0xFF2D3238))),
+                                      if (imageUrls.isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        SizedBox(
+                                          height: 50,
+                                          child: ListView.separated(
+                                            scrollDirection: Axis.horizontal,
+                                            itemCount: imageUrls.length,
+                                            separatorBuilder: (_, __) => const SizedBox(width: 6),
+                                            itemBuilder: (context, idx) {
+                                              final imgUrl = imageUrls[idx].toString();
+                                              return ClipRRect(
+                                                borderRadius: BorderRadius.circular(6),
+                                                child: imgUrl.contains('example.com')
+                                                    ? Container(
+                                                        color: Colors.grey[200],
+                                                        width: 50,
+                                                        height: 50,
+                                                        child: const Icon(Icons.broken_image, color: Colors.grey, size: 16),
+                                                      )
+                                                    : Image.network(
+                                                        imgUrl,
+                                                        width: 50,
+                                                        height: 50,
+                                                        fit: BoxFit.cover,
+                                                        errorBuilder: (_, __, ___) => Container(
+                                                          color: Colors.grey[200],
+                                                          width: 50,
+                                                          height: 50,
+                                                          child: const Icon(Icons.broken_image, color: Colors.grey, size: 16),
+                                                        ),
+                                                      ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+        ),
+      ],
     );
   }
 }

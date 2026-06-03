@@ -278,7 +278,7 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: photoUrl != null && photoUrl.isNotEmpty
+                              child: photoUrl != null && photoUrl.isNotEmpty && !photoUrl.contains('example.com')
                                   ? Image.network(
                                       photoUrl,
                                       width: 32,

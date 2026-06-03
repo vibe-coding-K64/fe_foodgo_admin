@@ -370,7 +370,7 @@ class _DriversPageState extends State<DriversPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: photoUrl.isNotEmpty
+              child: photoUrl.isNotEmpty && !photoUrl.contains('example.com')
                   ? Image.network(
                       photoUrl,
                       width: 40,
