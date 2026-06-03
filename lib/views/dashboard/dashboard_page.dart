@@ -24,6 +24,7 @@ class _MyDashboardState extends State<MyDashboard> {
   int _totalDrivers = 0;
   int _totalCustomers = 0;
   List<double> _weeklyRevenue = [0, 0, 0, 0, 0, 0, 0];
+  List<Map<String, dynamic>> _topStores = [];
 
   List<model.Order> _recentOrders = [];
   Map<String, int> _statusCount = {};
@@ -69,6 +70,11 @@ class _MyDashboardState extends State<MyDashboard> {
         final List<dynamic>? weeklyList = stats['weeklyRevenue'];
         if (weeklyList != null) {
           _weeklyRevenue = weeklyList.map((e) => (e as num).toDouble()).toList();
+        }
+        
+        final List<dynamic>? topStoresList = stats['topStores'];
+        if (topStoresList != null) {
+          _topStores = topStoresList.map((e) => Map<String, dynamic>.from(e)).toList();
         }
 
         _recentOrders = recent.take(5).toList();
@@ -248,6 +254,79 @@ class _MyDashboardState extends State<MyDashboard> {
                             child: LineChart(_mainLineData()),
                           ),
                         ),
+                        const SizedBox(height: 24),
+                        // Top Stores BarChart
+                        if (_topStores.isNotEmpty)
+                          _buildCardContainer(
+                            title: "Top 5 Cửa Hàng Bán Chạy",
+                            child: SizedBox(
+                              height: 220,
+                              child: BarChart(
+                                BarChartData(
+                                  alignment: BarChartAlignment.spaceAround,
+                                  maxY: (_topStores
+                                              .map((s) => (s['reviewCount'] as num?)?.toDouble() ?? 0)
+                                              .reduce((a, b) => a > b ? a : b) *
+                                          1.3)
+                                      .clamp(1, double.infinity),
+                                  barTouchData: BarTouchData(
+                                    touchTooltipData: BarTouchTooltipData(
+                                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                        final store = _topStores[groupIndex];
+                                        return BarTooltipItem(
+                                          '${store['name']}\n${rod.toY.toInt()} đánh giá',
+                                          const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  titlesData: FlTitlesData(
+                                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        getTitlesWidget: (value, meta) {
+                                          final idx = value.toInt();
+                                          if (idx < 0 || idx >= _topStores.length) return const SizedBox();
+                                          final name = (_topStores[idx]['name'] as String?) ?? '';
+                                          final shortName = name.length > 10 ? '${name.substring(0, 10)}…' : name;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 8),
+                                            child: Text(shortName, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  borderData: FlBorderData(show: false),
+                                  gridData: const FlGridData(show: false),
+                                  barGroups: List.generate(_topStores.length, (i) {
+                                    final reviewCount = (_topStores[i]['reviewCount'] as num?)?.toDouble() ?? 0;
+                                    final colors = [
+                                      const Color(0xFFFF6B35),
+                                      const Color(0xFF4F46E5),
+                                      Colors.green,
+                                      Colors.orange,
+                                      Colors.teal,
+                                    ];
+                                    return BarChartGroupData(
+                                      x: i,
+                                      barRods: [
+                                        BarChartRodData(
+                                          toY: reviewCount,
+                                          color: colors[i % colors.length],
+                                          width: 32,
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                                        ),
+                                      ],
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 24),
                         // Recent Orders
                         _buildCardContainer(
