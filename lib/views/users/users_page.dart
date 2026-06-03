@@ -269,13 +269,35 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                       flex: 2,
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: const Color(0xFFFFF3E0),
-                            backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
-                            child: photoUrl == null || photoUrl.isEmpty
-                                ? Text(fullName[0].toUpperCase(), style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold))
-                                : null,
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFFFF3E0),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: photoUrl != null && photoUrl.isNotEmpty
+                                  ? Image.network(
+                                      photoUrl,
+                                      width: 32,
+                                      height: 32,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, err, st) => Center(
+                                        child: Text(
+                                          fullName.isEmpty ? '?' : fullName[0].toUpperCase(),
+                                          style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold, fontSize: 13),
+                                        ),
+                                      ),
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        fullName.isEmpty ? '?' : fullName[0].toUpperCase(),
+                                        style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                    ),
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(

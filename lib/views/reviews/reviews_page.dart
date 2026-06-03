@@ -304,13 +304,35 @@ class _ReviewsPageState extends State<ReviewsPage> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: const Color(0xFFFFF3E0),
-                backgroundImage: userAvatar != null && userAvatar.isNotEmpty ? NetworkImage(userAvatar) : null,
-                child: userAvatar == null || userAvatar.isEmpty
-                    ? Text(userName[0].toUpperCase(), style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold, fontSize: 16))
-                    : null,
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFFFF3E0),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: userAvatar != null && userAvatar.isNotEmpty
+                      ? Image.network(
+                          userAvatar,
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, err, st) => Center(
+                            child: Text(
+                              userName.isEmpty ? '?' : userName[0].toUpperCase(),
+                              style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            userName.isEmpty ? '?' : userName[0].toUpperCase(),
+                            style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ),
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
