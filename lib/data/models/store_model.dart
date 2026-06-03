@@ -10,6 +10,8 @@ class Store {
   final String? bankAccountNumber;
   final String? bankName;
   final bool isAcceptingOrders; // Bật/Tắt nhận đơn
+  final double? rating;
+  final int? reviewCount;
 
   Store({
     this.id,
@@ -23,6 +25,8 @@ class Store {
     this.bankAccountNumber,
     this.bankName,
     this.isAcceptingOrders = true,
+    this.rating,
+    this.reviewCount,
   });
 
   factory Store.fromJson(Map<String, dynamic> json) {
@@ -33,11 +37,13 @@ class Store {
       address: json['address'] ?? '',
       taxCode: json['taxCode'] ?? '',
       businessLicense: json['businessLicense'] ?? '',
-      coverImageUrl: json['coverImageUrl'],
-      logoUrl: json['logoUrl'],
+      coverImageUrl: json['coverImageUrl'] ?? json['backUrl'],
+      logoUrl: json['logoUrl'] ?? json['avtUrl'],
       bankAccountNumber: json['bankAccountNumber'],
       bankName: json['bankName'],
-      isAcceptingOrders: json['acceptingOrders'] ?? true,
+      isAcceptingOrders: json['acceptingOrders'] ?? json['isOpen'] ?? true,
+      rating: (json['rating'] as num?)?.toDouble(),
+      reviewCount: (json['reviewCount'] as num?)?.toInt(),
     );
   }
 
@@ -54,6 +60,8 @@ class Store {
       'bankAccountNumber': bankAccountNumber,
       'bankName': bankName,
       'acceptingOrders': isAcceptingOrders,
+      'rating': rating,
+      'reviewCount': reviewCount,
     };
   }
 }

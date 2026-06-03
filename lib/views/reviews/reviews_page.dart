@@ -313,7 +313,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: userAvatar != null && userAvatar.isNotEmpty
+                  child: userAvatar != null && userAvatar.isNotEmpty && !userAvatar.contains('example.com')
                       ? Image.network(
                           userAvatar,
                           width: 44,
@@ -357,8 +357,8 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   const SizedBox(height: 4),
                   if (review['storeId'] != null)
                     Text(
-                      'Cửa hàng ID: ${review['storeId']}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.bold),
+                      'Cửa hàng: ${review['storeName'] ?? review['storeId']}',
+                      style: TextStyle(fontSize: 11, color: Color(0xFFFF6B35), fontWeight: FontWeight.bold),
                     ),
                 ],
               ),
@@ -378,18 +378,25 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 itemBuilder: (context, idx) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      imageUrls[idx].toString(),
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, err, st) => Container(
-                        color: Colors.grey[200],
-                        width: 80,
-                        height: 80,
-                        child: const Icon(Icons.broken_image, color: Colors.grey),
-                      ),
-                    ),
+                    child: imageUrls[idx].toString().contains('example.com')
+                        ? Container(
+                            color: Colors.grey[200],
+                            width: 80,
+                            height: 80,
+                            child: const Icon(Icons.broken_image, color: Colors.grey),
+                          )
+                        : Image.network(
+                            imageUrls[idx].toString(),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, err, st) => Container(
+                              color: Colors.grey[200],
+                              width: 80,
+                              height: 80,
+                              child: const Icon(Icons.broken_image, color: Colors.grey),
+                            ),
+                          ),
                   );
                 },
               ),
