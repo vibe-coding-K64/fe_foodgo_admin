@@ -58,6 +58,7 @@ class _MyDashboardState extends State<MyDashboard> {
         return b.createdAt!.compareTo(a.createdAt!);
       });
 
+      if (!mounted) return;
       setState(() {
         _totalRevenue = (stats['totalRevenue'] as num?)?.toDouble() ?? 0.0;
         _totalOrders = (stats['totalOrders'] as num?)?.toInt() ?? 0;
@@ -75,6 +76,7 @@ class _MyDashboardState extends State<MyDashboard> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _errorMessage = 'Không thể kết nối API thống kê hệ thống: $e';

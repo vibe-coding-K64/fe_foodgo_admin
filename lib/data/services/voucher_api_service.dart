@@ -1,14 +1,9 @@
 import 'package:dio/dio.dart';
 import '../models/voucher_model.dart';
-import 'api_constants.dart';
+import 'api_client.dart';
 
 class VoucherApiService {
-  final Dio _dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
-    headers: {'Content-Type': 'application/json'},
-  ));
+  final Dio _dio = ApiClient().dio;
 
   Future<List<Voucher>> getAllVouchers({String? storeId}) async {
     try {

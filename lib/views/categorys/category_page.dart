@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/category_model.dart';
 import '../../data/services/category_api_service.dart';
-import '../../data/services/auth_service.dart';
 
 class MenuCategoryPage extends StatefulWidget {
   final Function(String)? onNavigate;
@@ -12,7 +11,6 @@ class MenuCategoryPage extends StatefulWidget {
 
 class _MenuCategoryPageState extends State<MenuCategoryPage> {
   final CategoryApiService _apiService = CategoryApiService();
-  final AuthService _authService = AuthService();
   List<Category> _categories = [];
   bool _isLoading = true;
   

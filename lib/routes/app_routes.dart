@@ -213,11 +213,11 @@ class AppRouteParser extends RouteInformationParser<String> {
   Future<String> parseRouteInformation(
     RouteInformation routeInformation,
   ) async {
-    return routeInformation.location ?? "/dashboard";
+    return routeInformation.uri.path.isEmpty ? "/dashboard" : routeInformation.uri.path;
   }
 
   @override
   RouteInformation restoreRouteInformation(String configuration) {
-    return RouteInformation(location: configuration);
+    return RouteInformation(uri: Uri.parse(configuration));
   }
 }
