@@ -93,6 +93,7 @@ class _SidebarState extends State<Sidebar> {
                 _item(Icons.dashboard_outlined, 'Bảng điều khiển', '/dashboard'),
                 _item(Icons.people_outline, 'Người dùng & Phân quyền', '/users'),
                 _item(Icons.store_outlined, 'Cửa hàng', '/stores'),
+                _item(Icons.two_wheeler_rounded, 'Tài xế', '/drivers'),
                 _item(Icons.settings_outlined, 'Cấu hình hệ thống', '/settings'),
 
                 // NỘI DUNG
