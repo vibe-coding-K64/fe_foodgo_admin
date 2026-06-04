@@ -43,4 +43,17 @@ class DriverApiService {
       throw _handleError(e);
     }
   }
+
+  /// Lấy thông tin chi tiết hồ sơ tài xế (phương tiện, doanh thu, đánh giá)
+  Future<Map<String, dynamic>> getDriverProfile(String driverId) async {
+    try {
+      final response = await _dio.get('/admin/users/$driverId/driver-profile');
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      }
+      throw 'Không tải được hồ sơ tài xế';
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
 }

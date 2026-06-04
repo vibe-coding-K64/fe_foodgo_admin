@@ -30,6 +30,19 @@ class ReviewApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getReviewsByStore(String storeId) async {
+    try {
+      final response = await _dio.get('/reviews', queryParameters: {'storeId': storeId});
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        List data = response.data['data'];
+        return data.map((json) => Map<String, dynamic>.from(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<bool> deleteReview(String id) async {
     try {
       final response = await _dio.delete('/reviews/admin/$id');

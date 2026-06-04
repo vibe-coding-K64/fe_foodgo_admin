@@ -356,99 +356,341 @@ class _DriversPageState extends State<DriversPage> {
     final photoUrl = driver['photoUrl'] ?? driver['photoURL'] ?? '';
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFFFF3E0),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: photoUrl.isNotEmpty
-                  ? Image.network(
-                      photoUrl,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
+    return InkWell(
+      onTap: () => _showDriverDetails(driver),
+      hoverColor: Colors.grey.shade50,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            // Avatar
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFFFF3E0),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: photoUrl.isNotEmpty && !photoUrl.contains('example.com')
+                    ? Image.network(
+                        photoUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Text(initial,
+                              style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold)),
+                        ),
+                      )
+                    : Center(
                         child: Text(initial,
                             style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold)),
                       ),
-                    )
-                  : Center(
-                      child: Text(initial,
-                          style: const TextStyle(color: Color(0xFFFF6B35), fontWeight: FontWeight.bold)),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(flex: 3, child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E1E2D)))),
-          Expanded(flex: 2, child: Text(phone, style: const TextStyle(fontSize: 14, color: Color(0xFF1E1E2D)))),
-          Expanded(flex: 2, child: Text(email, style: const TextStyle(fontSize: 13, color: Colors.grey), overflow: TextOverflow.ellipsis)),
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: (isActive ? Colors.green : Colors.red).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(
-                isActive ? 'Hoạt động' : 'Bị khoá',
-                style: TextStyle(
-                  color: isActive ? Colors.green : Colors.red,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(width: 12),
+            Expanded(flex: 3, child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E1E2D)))),
+            Expanded(flex: 2, child: Text(phone, style: const TextStyle(fontSize: 14, color: Color(0xFF1E1E2D)))),
+            Expanded(flex: 2, child: Text(email, style: const TextStyle(fontSize: 13, color: Colors.grey), overflow: TextOverflow.ellipsis)),
+            Expanded(
+              flex: 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: (isActive ? Colors.green : Colors.red).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                textAlign: TextAlign.center,
+                child: Text(
+                  isActive ? 'Hoạt động' : 'Bị khoá',
+                  style: TextStyle(
+                    color: isActive ? Colors.green : Colors.red,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            width: 100,
-            child: Center(
-              child: Tooltip(
-                message: isActive ? 'Khoá tài khoản' : 'Mở khoá tài khoản',
-                child: InkWell(
-                  onTap: () => _toggleActive(driver),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: (isActive ? Colors.red : Colors.green).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: (isActive ? Colors.red : Colors.green).withOpacity(0.3),
+            SizedBox(
+              width: 100,
+              child: Center(
+                child: Tooltip(
+                  message: isActive ? 'Khoá tài khoản' : 'Mở khoá tài khoản',
+                  child: InkWell(
+                    onTap: () => _toggleActive(driver),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: (isActive ? Colors.red : Colors.green).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: (isActive ? Colors.red : Colors.green).withOpacity(0.3),
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isActive ? Icons.lock_outline : Icons.lock_open_outlined,
-                          color: isActive ? Colors.red : Colors.green,
-                          size: 15,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          isActive ? 'Khoá' : 'Mở',
-                          style: TextStyle(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isActive ? Icons.lock_outline : Icons.lock_open_outlined,
                             color: isActive ? Colors.red : Colors.green,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                            size: 15,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            isActive ? 'Khoá' : 'Mở',
+                            style: TextStyle(
+                              color: isActive ? Colors.red : Colors.green,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDriverDetails(Map<String, dynamic> driver) {
+    final id = driver['uid'] ?? driver['id'] ?? '';
+    final name = driver['fullName'] ?? driver['displayName'] ?? 'tài xế';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Container(
+            width: 460,
+            padding: const EdgeInsets.all(24),
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: _driverService.getDriverProfile(id),
+              builder: (ctx, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                    height: 250,
+                    child: Center(
+                      child: CircularProgressIndicator(color: Color(0xFFFF6B35)),
+                    ),
+                  );
+                }
+
+                if (snapshot.hasError) {
+                  return SizedBox(
+                    height: 250,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                        const SizedBox(height: 12),
+                        Text('Không thể tải chi tiết hồ sơ tài xế.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade600)),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35), foregroundColor: Colors.white),
+                          child: const Text('Đóng'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final profile = snapshot.data ?? {};
+                final vehicleType = profile['vehicleType'] ?? 'Chưa cập nhật';
+                final vehiclePlate = profile['vehiclePlate'] ?? 'Chưa cập nhật';
+                final driverLicense = profile['driverLicense'] ?? 'Chưa cập nhật';
+                final totalTrips = profile['totalTrips'] ?? 0;
+                final balance = profile['totalEarnings'] ?? profile['balance'] ?? 0.0;
+                final rating = profile['rating'] ?? 5.0;
+
+                final photoUrl = driver['photoUrl'] ?? driver['photoURL'] ?? '';
+                final email = driver['email'] ?? '—';
+                final phone = driver['phoneNumber'] ?? '—';
+                final isActive = driver['isActive'] == true;
+
+                double parsedBalance = 0.0;
+                if (balance is num) {
+                  parsedBalance = balance.toDouble();
+                } else if (balance is String) {
+                  parsedBalance = double.tryParse(balance) ?? 0.0;
+                }
+
+                double parsedRating = 5.0;
+                if (rating is num) {
+                  parsedRating = rating.toDouble();
+                } else if (rating is String) {
+                  parsedRating = double.tryParse(rating) ?? 5.0;
+                }
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Chi tiết Tài Xế',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D)),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    const SizedBox(height: 10),
+
+                    Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Color(0xFFFFF3E0),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(28),
+                            child: photoUrl.isNotEmpty && !photoUrl.contains('example.com')
+                                ? Image.network(
+                                    photoUrl,
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                          style: const TextStyle(color: Color(0xFFFF6B35), fontSize: 20, fontWeight: FontWeight.bold)),
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?',
+                                        style: const TextStyle(color: Color(0xFFFF6B35), fontSize: 20, fontWeight: FontWeight.bold)),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D)),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.star_rounded, size: 16, color: Colors.amber.shade700),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${parsedRating.toStringAsFixed(1)} / 5.0',
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E1E2D)),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: (isActive ? Colors.green : Colors.red).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            isActive ? 'Hoạt động' : 'Bị khoá',
+                            style: TextStyle(
+                              color: isActive ? Colors.green : Colors.red,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    const Text('Thông tin liên hệ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    _detailItem(Icons.phone_outlined, 'Số điện thoại', phone),
+                    _detailItem(Icons.email_outlined, 'Email', email),
+                    
+                    const SizedBox(height: 14),
+                    const Text('Phương tiện & Bằng lái', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    _detailItem(Icons.two_wheeler_outlined, 'Loại xe', vehicleType),
+                    _detailItem(Icons.credit_card_outlined, 'Biển số xe', vehiclePlate),
+                    _detailItem(Icons.badge_outlined, 'Số bằng lái', driverLicense),
+
+                    const SizedBox(height: 14),
+                    const Text('Thống kê & Ví', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 6),
+                    _detailItem(Icons.shopping_bag_outlined, 'Tổng số chuyến', '$totalTrips chuyến'),
+                    _detailItem(Icons.account_balance_wallet_outlined, 'Tổng doanh thu', '${parsedBalance.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}đ'),
+
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Đóng', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _toggleActive(driver);
+                          },
+                          icon: Icon(isActive ? Icons.lock_outline : Icons.lock_open_outlined, size: 16),
+                          label: Text(isActive ? 'Khoá tài khoản' : 'Mở khoá'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isActive ? Colors.red : Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailItem(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: Colors.grey.shade400),
+          const SizedBox(width: 8),
+          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13, color: Color(0xFF1E1E2D)),
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

@@ -23,8 +23,8 @@ class ApiClient {
         try {
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
-            // Lấy ID Token (JWT) từ Firebase
-            final token = await user.getIdToken(true); // force refresh
+            // Lấy ID Token (JWT) từ Firebase (dùng cache nếu còn hạn, tránh gọi mạng dư thừa)
+            final token = await user.getIdToken(false);
             if (token != null) {
               options.headers['Authorization'] = 'Bearer $token';
               options.headers['X-Firebase-Token'] = token; // Gửi kèm header xác thực Firebase của Backend

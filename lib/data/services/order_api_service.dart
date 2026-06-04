@@ -36,7 +36,28 @@ class OrderApiService {
 
   Future<void> updateOrderStatus(String id, String status) async {
     try {
-      await _dio.patch('/orders/$id/status', data: {'status': status});
+      int statusCode = 0;
+      switch (status) {
+        case 'Chờ xác nhận':
+          statusCode = 0;
+          break;
+        case 'Đang chế biến':
+        case 'Đang chuẩn bị':
+          statusCode = 1;
+          break;
+        case 'Đang giao':
+          statusCode = 2;
+          break;
+        case 'Hoàn thành':
+          statusCode = 3;
+          break;
+        case 'Đã hủy':
+          statusCode = 4;
+          break;
+        default:
+          statusCode = 0;
+      }
+      await _dio.put('/orders/$id/status', data: {'status': statusCode});
     } catch (e) {
       throw Exception('Failed to update order status: $e');
     }

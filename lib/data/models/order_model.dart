@@ -33,6 +33,7 @@ class OrderItem {
 class Order {
   final String? id;
   final String storeId;
+  final String storeName;
   final String code;
   final String customerName;
   final String customerPhone;
@@ -51,6 +52,7 @@ class Order {
   Order({
     this.id,
     required this.storeId,
+    required this.storeName,
     required this.code,
     required this.customerName,
     required this.customerPhone,
@@ -72,20 +74,23 @@ class Order {
     return Order(
       id: json['id'],
       storeId: json['storeId'] ?? '',
+      storeName: json['storeName'] ?? '',
       code: json['code'] ?? '',
-      customerName: json['customerName'] ?? '',
-      customerPhone: json['customerPhone'] ?? '',
+      customerName: json['customerName'] ?? json['receiverName'] ?? '',
+      customerPhone: json['customerPhone'] ?? json['receiverPhone'] ?? '',
       deliveryAddress: json['deliveryAddress'] ?? '',
       driverName: json['driverName'] ?? '',
       driverPhone: json['driverPhone'] ?? '',
       items: itemsList.map((i) => OrderItem.fromJson(i)).toList(),
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
-      shippingFee: (json['shippingFee'] as num?)?.toDouble() ?? 0.0,
-      discountAmount: (json['discountAmount'] as num?)?.toDouble() ?? 0.0,
+      shippingFee: (json['shippingFee'] as num?)?.toDouble() ?? (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
+      discountAmount: ((json['discountAmount'] as num?)?.toDouble() ?? 0.0) +
+          ((json['shopDiscountAmount'] as num?)?.toDouble() ?? 0.0) +
+          ((json['freeshipDiscountAmount'] as num?)?.toDouble() ?? 0.0),
       finalAmount: (json['finalAmount'] as num?)?.toDouble() ?? 0.0,
       paymentMethod: json['paymentMethod'] ?? 'Tiền mặt',
-      status: json['status'] ?? 'Chờ xác nhận',
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      status: json['status'] == 'Đang chuẩn bị' ? 'Đang chế biến' : (json['status'] ?? 'Chờ xác nhận'),
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']).toLocal() : null,
     );
   }
 
@@ -93,6 +98,7 @@ class Order {
     return {
       'id': id,
       'storeId': storeId,
+      'storeName': storeName,
       'code': code,
       'customerName': customerName,
       'customerPhone': customerPhone,

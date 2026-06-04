@@ -34,7 +34,10 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
   }
 
   void _handleTabChange() {
-    if (_tabController.indexIsChanging) return;
+    if (_tabController.indexIsChanging) {
+      setState(() {});
+      return;
+    }
     _fetchUsers();
   }
 
@@ -125,10 +128,26 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                 ),
               ],
             ),
-            IconButton(
-              onPressed: _fetchUsers,
-              icon: const Icon(Icons.refresh, color: Color(0xFFFF6B35)),
-              tooltip: 'Tải lại',
+            Row(
+              children: [
+                if (_tabController.index == 3)
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6B35),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: _showCreateAdminDialog,
+                    icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                    label: const Text('Thêm Admin', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: _fetchUsers,
+                  icon: const Icon(Icons.refresh, color: Color(0xFFFF6B35)),
+                  tooltip: 'Tải lại',
+                ),
+              ],
             )
           ],
         ),
@@ -238,8 +257,8 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
               Expanded(flex: 2, child: Text('Họ và Tên', style: TextStyle(fontWeight: FontWeight.bold))),
               Expanded(flex: 3, child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold))),
               Expanded(flex: 2, child: Text('Số Điện Thoại', style: TextStyle(fontWeight: FontWeight.bold))),
-              SizedBox(width: 140, child: Text('Trạng Thái', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
-              SizedBox(width: 120, child: Text('Thao Tác', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+              SizedBox(width: 120, child: Text('Trạng Thế', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
+              SizedBox(width: 180, child: Text('Thao Tác', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center)),
             ],
           ),
         ),
@@ -278,7 +297,7 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                             ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(16),
-                              child: photoUrl != null && photoUrl.isNotEmpty
+                              child: photoUrl != null && photoUrl.isNotEmpty && !photoUrl.contains('example.com')
                                   ? Image.network(
                                       photoUrl,
                                       width: 32,
@@ -320,7 +339,7 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                       child: Text(phoneNumber),
                     ),
                     SizedBox(
-                      width: 140,
+                      width: 120,
                       child: Center(
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -340,22 +359,31 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                       ),
                     ),
                     SizedBox(
-                      width: 120,
+                      width: 180,
                       child: Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Nút khoá/mở tài khoản dùng Switch
                             Switch(
                               value: isActive,
                               onChanged: (_) => _toggleUserStatus(user),
                               activeColor: const Color(0xFFFF6B35),
                               inactiveThumbColor: Colors.grey,
                             ),
-                            Icon(
-                              isActive ? Icons.lock_open : Icons.lock_outline,
-                              size: 16,
-                              color: isActive ? Colors.green : Colors.grey,
-                            )
+                            // Đổi vai trò
+                            IconButton(
+                              icon: const Icon(Icons.manage_accounts, color: Colors.blueAccent, size: 20),
+                              tooltip: 'Đổi vai trò',
+                              onPressed: () => _showChangeRolesDialog(user),
+                            ),
+                            // Phân quyền Admin
+                            if (_tabsConfig[_tabController.index]['role'] == 4)
+                              IconButton(
+                                icon: const Icon(Icons.key, color: Colors.amber, size: 20),
+                                tooltip: 'Phân quyền Admin',
+                                onPressed: () => _showAdminPermissionsDialog(user),
+                              ),
                           ],
                         ),
                       ),
@@ -367,6 +395,427 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
           ),
         ),
       ],
+    );
+  }
+
+  void _showChangeRolesDialog(Map<String, dynamic> user) {
+    final userId = user['id']?.toString() ?? '';
+    final List<dynamic> rawRoles = user['roles'] ?? [];
+    List<int> currentRoles = rawRoles.map((e) => int.parse(e.toString())).toList();
+
+    bool hasRole(int role) => currentRoles.contains(role);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text('Nhóm quyền của: ${user['fullName'] ?? 'Người dùng'}'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CheckboxListTile(
+                    title: const Text('Khách hàng (1)'),
+                    value: hasRole(1),
+                    onChanged: (val) {
+                      setStateDialog(() {
+                        if (val == true) {
+                          if (!currentRoles.contains(1)) currentRoles.add(1);
+                        } else {
+                          currentRoles.remove(1);
+                        }
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Tài xế (2)'),
+                    value: hasRole(2),
+                    onChanged: (val) {
+                      setStateDialog(() {
+                        if (val == true) {
+                          if (!currentRoles.contains(2)) currentRoles.add(2);
+                        } else {
+                          currentRoles.remove(2);
+                        }
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Cửa hàng (3)'),
+                    value: hasRole(3),
+                    onChanged: (val) {
+                      setStateDialog(() {
+                        if (val == true) {
+                          if (!currentRoles.contains(3)) currentRoles.add(3);
+                        } else {
+                          currentRoles.remove(3);
+                        }
+                      });
+                    },
+                  ),
+                  CheckboxListTile(
+                    title: const Text('Quản trị viên (4)'),
+                    value: hasRole(4),
+                    onChanged: (val) {
+                      setStateDialog(() {
+                        if (val == true) {
+                          if (!currentRoles.contains(4)) currentRoles.add(4);
+                        } else {
+                          currentRoles.remove(4);
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
+                  onPressed: () async {
+                    try {
+                      await _userApiService.updateUserRoles(userId, currentRoles);
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      _showToast('Cập nhật vai trò thành công!', Colors.green);
+                      _fetchUsers();
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      _showToast('Lỗi cập nhật vai trò: $e', Colors.red);
+                    }
+                  },
+                  child: const Text('Lưu', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showAdminPermissionsDialog(Map<String, dynamic> user) async {
+    final userId = user['id']?.toString() ?? '';
+    final stateContext = context;
+    
+    showDialog(
+      context: stateContext,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35))),
+    );
+
+    Map<String, dynamic>? profile;
+    try {
+      profile = await _userApiService.getAdminProfile(userId);
+      if (!stateContext.mounted) return;
+      Navigator.pop(stateContext);
+    } catch (e) {
+      if (!stateContext.mounted) return;
+      Navigator.pop(stateContext);
+      _showToast('Không thể lấy thông tin phân quyền: $e', Colors.red);
+      return;
+    }
+
+    final deptController = TextEditingController(text: profile['department']?.toString() ?? 'Management');
+    int adminLevel = int.tryParse(profile['adminLevel']?.toString() ?? '1') ?? 1;
+    final List<dynamic> rawPerms = profile['permissions'] ?? [];
+    List<String> permissions = rawPerms.map((e) => e.toString()).toList();
+
+    bool hasPerm(String perm) => permissions.contains(perm);
+
+    if (!stateContext.mounted) return;
+    showDialog(
+      context: stateContext,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text('Phân quyền Admin: ${user['fullName'] ?? 'Admin'}'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: deptController,
+                      decoration: const InputDecoration(labelText: 'Phòng ban / Bộ phận'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      value: adminLevel,
+                      decoration: const InputDecoration(labelText: 'Cấp độ Admin'),
+                      items: const [
+                        DropdownMenuItem(value: 1, child: Text('Cấp 1 - Staff')),
+                        DropdownMenuItem(value: 2, child: Text('Cấp 2 - Supervisor')),
+                        DropdownMenuItem(value: 3, child: Text('Cấp 3 - Manager')),
+                        DropdownMenuItem(value: 4, child: Text('Cấp 4 - Super Admin')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setStateDialog(() {
+                            adminLevel = val;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('Danh sách quyền hạn:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Quản lý người dùng (manage_users)'),
+                      value: hasPerm('manage_users'),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          if (val == true) {
+                            permissions.add('manage_users');
+                          } else {
+                            permissions.remove('manage_users');
+                          }
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Phê duyệt cửa hàng (manage_stores)'),
+                      value: hasPerm('manage_stores'),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          if (val == true) {
+                            permissions.add('manage_stores');
+                          } else {
+                            permissions.remove('manage_stores');
+                          }
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Xử lý đơn hàng (manage_orders)'),
+                      value: hasPerm('manage_orders'),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          if (val == true) {
+                            permissions.add('manage_orders');
+                          } else {
+                            permissions.remove('manage_orders');
+                          }
+                        });
+                      },
+                    ),
+                    CheckboxListTile(
+                      title: const Text('Xem báo cáo thống kê (view_reports)'),
+                      value: hasPerm('view_reports'),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          if (val == true) {
+                            permissions.add('view_reports');
+                          } else {
+                            permissions.remove('view_reports');
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
+                  onPressed: () async {
+                    try {
+                      await _userApiService.updateAdminProfile(
+                        userId,
+                        department: deptController.text,
+                        adminLevel: adminLevel,
+                        permissions: permissions,
+                      );
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      _showToast('Cập nhật phân quyền thành công!', Colors.green);
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      _showToast('Lỗi cập nhật phân quyền: $e', Colors.red);
+                    }
+                  },
+                  child: const Text('Lưu', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showCreateAdminDialog() {
+    final emailController = TextEditingController();
+    final passController = TextEditingController();
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final deptController = TextEditingController(text: 'Management');
+    int adminLevel = 1;
+    List<String> permissions = [];
+
+    bool hasPerm(String perm) => permissions.contains(perm);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Tạo tài khoản Admin mới'),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 450,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: emailController,
+                        decoration: const InputDecoration(labelText: 'Email *'),
+                      ),
+                      TextField(
+                        controller: passController,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Mật khẩu *'),
+                      ),
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(labelText: 'Họ và Tên *'),
+                      ),
+                      TextField(
+                        controller: phoneController,
+                        decoration: const InputDecoration(labelText: 'Số Điện Thoại'),
+                      ),
+                      TextField(
+                        controller: deptController,
+                        decoration: const InputDecoration(labelText: 'Phòng ban'),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int>(
+                        value: adminLevel,
+                        decoration: const InputDecoration(labelText: 'Cấp độ Admin'),
+                        items: const [
+                          DropdownMenuItem(value: 1, child: Text('Cấp 1 - Staff')),
+                          DropdownMenuItem(value: 2, child: Text('Cấp 2 - Supervisor')),
+                          DropdownMenuItem(value: 3, child: Text('Cấp 3 - Manager')),
+                          DropdownMenuItem(value: 4, child: Text('Cấp 4 - Super Admin')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setStateDialog(() {
+                              adminLevel = val;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Danh sách quyền hạn:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      CheckboxListTile(
+                        title: const Text('Quản lý người dùng (manage_users)'),
+                        value: hasPerm('manage_users'),
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            if (val == true) {
+                              permissions.add('manage_users');
+                            } else {
+                              permissions.remove('manage_users');
+                            }
+                          });
+                        },
+                      ),
+                      CheckboxListTile(
+                        title: const Text('Phê duyệt cửa hàng (manage_stores)'),
+                        value: hasPerm('manage_stores'),
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            if (val == true) {
+                              permissions.add('manage_stores');
+                            } else {
+                              permissions.remove('manage_stores');
+                            }
+                          });
+                        },
+                      ),
+                      CheckboxListTile(
+                        title: const Text('Xử lý đơn hàng (manage_orders)'),
+                        value: hasPerm('manage_orders'),
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            if (val == true) {
+                              permissions.add('manage_orders');
+                            } else {
+                              permissions.remove('manage_orders');
+                            }
+                          });
+                        },
+                      ),
+                      CheckboxListTile(
+                        title: const Text('Xem báo cáo thống kê (view_reports)'),
+                        value: hasPerm('view_reports'),
+                        onChanged: (val) {
+                          setStateDialog(() {
+                            if (val == true) {
+                              permissions.add('view_reports');
+                            } else {
+                              permissions.remove('view_reports');
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
+                  onPressed: () async {
+                    if (emailController.text.isEmpty || passController.text.isEmpty || nameController.text.isEmpty) {
+                      _showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)', Colors.orange);
+                      return;
+                    }
+                    try {
+                      await _userApiService.createAdminUser(
+                        email: emailController.text,
+                        password: passController.text,
+                        fullName: nameController.text,
+                        phoneNumber: phoneController.text,
+                        department: deptController.text,
+                        adminLevel: adminLevel,
+                        permissions: permissions,
+                      );
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                      _showToast('Tạo tài khoản Admin thành công!', Colors.green);
+                      _fetchUsers();
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      _showToast('Lỗi tạo Admin: $e', Colors.red);
+                    }
+                  },
+                  child: const Text('Tạo', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

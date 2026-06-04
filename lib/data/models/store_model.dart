@@ -10,6 +10,10 @@ class Store {
   final String? bankAccountNumber;
   final String? bankName;
   final bool isAcceptingOrders; // Bật/Tắt nhận đơn
+  final double? rating;
+  final int? reviewCount;
+  final String approvalStatus; // "pending" | "approved" | "rejected"
+  final String? rejectReason;
 
   Store({
     this.id,
@@ -23,6 +27,10 @@ class Store {
     this.bankAccountNumber,
     this.bankName,
     this.isAcceptingOrders = true,
+    this.rating,
+    this.reviewCount,
+    this.approvalStatus = 'approved',
+    this.rejectReason,
   });
 
   factory Store.fromJson(Map<String, dynamic> json) {
@@ -33,11 +41,15 @@ class Store {
       address: json['address'] ?? '',
       taxCode: json['taxCode'] ?? '',
       businessLicense: json['businessLicense'] ?? '',
-      coverImageUrl: json['coverImageUrl'],
-      logoUrl: json['logoUrl'],
+      coverImageUrl: json['coverImageUrl'] ?? json['backUrl'],
+      logoUrl: json['logoUrl'] ?? json['avtUrl'],
       bankAccountNumber: json['bankAccountNumber'],
       bankName: json['bankName'],
-      isAcceptingOrders: json['acceptingOrders'] ?? true,
+      isAcceptingOrders: json['acceptingOrders'] ?? json['isOpen'] ?? true,
+      rating: (json['rating'] as num?)?.toDouble(),
+      reviewCount: (json['reviewCount'] as num?)?.toInt(),
+      approvalStatus: json['approvalStatus'] ?? 'approved',
+      rejectReason: json['rejectReason'],
     );
   }
 
@@ -51,9 +63,16 @@ class Store {
       'businessLicense': businessLicense,
       'coverImageUrl': coverImageUrl,
       'logoUrl': logoUrl,
+      'backUrl': coverImageUrl,
+      'avtUrl': logoUrl,
       'bankAccountNumber': bankAccountNumber,
       'bankName': bankName,
       'acceptingOrders': isAcceptingOrders,
+      'isOpen': isAcceptingOrders,
+      'rating': rating,
+      'reviewCount': reviewCount,
+      'approvalStatus': approvalStatus,
+      'rejectReason': rejectReason,
     };
   }
 }

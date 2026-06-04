@@ -44,4 +44,84 @@ class UserApiService {
       throw _handleError(e);
     }
   }
+
+  Future<Map<String, dynamic>> createAdminUser({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phoneNumber,
+    required String department,
+    required int adminLevel,
+    required List<String> permissions,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/admin/users/create-admin',
+        data: {
+          'email': email,
+          'password': password,
+          'fullName': fullName,
+          'phoneNumber': phoneNumber,
+          'department': department,
+          'adminLevel': adminLevel,
+          'permissions': permissions,
+        },
+      );
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      }
+      throw Exception('Lỗi tạo tài khoản admin');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> updateUserRoles(String userId, List<int> roles) async {
+    try {
+      final response = await _dio.put(
+        '/admin/users/$userId/roles',
+        data: {'roles': roles},
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi cập nhật vai trò');
+      }
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getAdminProfile(String userId) async {
+    try {
+      final response = await _dio.get('/admin/users/$userId/admin-profile');
+      if (response.statusCode == 200) {
+        return Map<String, dynamic>.from(response.data);
+      }
+      throw Exception('Lỗi lấy hồ sơ admin');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> updateAdminProfile(
+    String userId, {
+    required String department,
+    required int adminLevel,
+    required List<String> permissions,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/admin/users/$userId/admin-profile',
+        data: {
+          'department': department,
+          'adminLevel': adminLevel,
+          'permissions': permissions,
+        },
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi cập nhật phân quyền admin');
+      }
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
 }

@@ -46,80 +46,105 @@ class _ReportTicketsPageState extends State<ReportTicketsPage> {
     }
   }
 
-  Future<void> _markResolved(Map<String, dynamic> ticket) async {
+  Future<void> _showProcessDialog(Map<String, dynamic> ticket) async {
     final id = ticket['id'] as String? ?? '';
     if (id.isEmpty) return;
 
-    final noteCtrl = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final rawStatus = ticket['status'] as String? ?? 'open';
+    String selectedStatus = ReportApiService.mapStatusVi(rawStatus);
+    final noteCtrl = TextEditingController(text: ticket['adminNote'] as String? ?? '');
+
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Đánh dấu đã giải quyết'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Thêm ghi chú xử lý (tuỳ chọn):'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: noteCtrl,
-              maxLines: 3,
-              decoration: InputDecoration(
-                hintText: 'Nhập ghi chú...',
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: Colors.white,
+            surfaceTintColor: Colors.transparent,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Xử lý Khiếu nại #${id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Trạng thái xử lý:', style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: selectedStatus,
+                      isExpanded: true,
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() {
+                            selectedStatus = val;
+                          });
+                        }
+                      },
+                      items: ['Mở', 'Đang xử lý', 'Đã giải quyết'].map((s) {
+                        return DropdownMenuItem<String>(
+                          value: s,
+                          child: Text(s),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Ghi chú xử lý / Phản hồi:', style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: noteCtrl,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Nhập ghi chú hoặc hướng dẫn giải quyết...',
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFFF6B35))),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Huỷ', style: TextStyle(color: Colors.grey)),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Huỷ')),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(ctx, true),
-            icon: const Icon(Icons.check_circle_outline, size: 16),
-            label: const Text('Xác nhận'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-        ],
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B35),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text('Cập nhật'),
+              ),
+            ],
+          );
+        }
       ),
     );
 
     if (confirmed != true) return;
 
+    setState(() => _isLoading = true);
     try {
-      await _reportService.updateStatus(id, 'Đã giải quyết', adminNote: noteCtrl.text);
+      await _reportService.updateStatus(id, selectedStatus, adminNote: noteCtrl.text);
       await _loadTickets();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã đánh dấu khiếu nại là đã giải quyết'),
+        content: Text('Đã cập nhật khiếu nại thành công'),
         backgroundColor: Colors.green,
       ));
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  Future<void> _markProcessing(Map<String, dynamic> ticket) async {
-    final id = ticket['id'] as String? ?? '';
-    if (id.isEmpty) return;
-    try {
-      await _reportService.updateStatus(id, 'Đang xử lý');
-      await _loadTickets();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Đã chuyển sang trạng thái Đang xử lý'),
-        backgroundColor: Colors.blue,
-      ));
-    } catch (e) {
+      setState(() => _isLoading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi: $e'), backgroundColor: Colors.red),
@@ -376,38 +401,17 @@ class _ReportTicketsPageState extends State<ReportTicketsPage> {
             ),
           ],
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (rawStatus == 'open' || statusVi == 'Mở')
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: OutlinedButton.icon(
-                    onPressed: () => _markProcessing(ticket),
-                    icon: const Icon(Icons.pending_outlined, size: 16),
-                    label: const Text('Đang xử lý'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue,
-                      side: const BorderSide(color: Colors.blue),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
+              ElevatedButton.icon(
+                onPressed: () => _showProcessDialog(ticket),
+                icon: const Icon(Icons.edit_note, size: 18),
+                label: const Text('Phản hồi & Xử lý'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B35),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-              if (rawStatus != 'resolved' && statusVi != 'Đã giải quyết')
-                ElevatedButton.icon(
-                  onPressed: () => _markResolved(ticket),
-                  icon: const Icon(Icons.check_circle_outline, size: 16),
-                  label: const Text('Đánh dấu đã giải quyết'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-            ],
-          ),
+              ),
         ],
       ),
     );
