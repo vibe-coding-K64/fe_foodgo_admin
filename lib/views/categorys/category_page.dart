@@ -16,7 +16,7 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
   
   // Pagination
   int _currentPage = 1;
-  final int _itemsPerPage = 6;
+  final int _itemsPerPage = 10;
 
   @override
   void initState() {

@@ -34,6 +34,27 @@ class AuthService {
         final prefs = await SharedPreferences.getInstance();
         // Xóa storeId nếu có để tránh conflict do admin quản lý toàn bộ hệ thống
         await prefs.remove('storeId');
+
+        // Fetch AdminProfile to get permissions
+        try {
+          final token = await cred.user!.getIdToken(true);
+          final profileResponse = await Dio(BaseOptions(baseUrl: ApiConstants.baseUrl)).get(
+            '/admin/users/${cred.user!.uid}/admin-profile',
+            options: Options(headers: {
+              'Authorization': 'Bearer $token',
+              'X-Firebase-Token': token,
+            }),
+          );
+          if (profileResponse.statusCode == 200 && profileResponse.data != null) {
+            final List<dynamic> rawPermissions = profileResponse.data['permissions'] ?? [];
+            final permissions = rawPermissions.map((e) => e.toString()).toList();
+            await prefs.setStringList('admin_permissions', permissions);
+          }
+        } catch (e) {
+          // If we couldn't fetch the profile (e.g. not configured yet), save empty/default permissions
+          await prefs.setStringList('admin_permissions', []);
+        }
+
         return cred;
       } else {
         await _firebaseAuth.signOut();
@@ -92,6 +113,7 @@ class AuthService {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('storeId');
+    await prefs.remove('admin_permissions');
     await _firebaseAuth.signOut();
   }
 }
