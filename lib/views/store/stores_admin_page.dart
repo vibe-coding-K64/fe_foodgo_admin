@@ -53,8 +53,11 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           s.name.toLowerCase().contains(query) ||
           s.address.toLowerCase().contains(query);
       final matchFilter = _filterStatus == 'all' ||
-          (_filterStatus == 'open' && s.isAcceptingOrders) ||
-          (_filterStatus == 'closed' && !s.isAcceptingOrders);
+          (_filterStatus == 'open' && s.isAcceptingOrders && s.approvalStatus == 'approved') ||
+          (_filterStatus == 'closed' && !s.isAcceptingOrders && s.approvalStatus == 'approved') ||
+          (_filterStatus == 'pending' && s.approvalStatus == 'pending') ||
+          (_filterStatus == 'approved' && s.approvalStatus == 'approved') ||
+          (_filterStatus == 'rejected' && s.approvalStatus == 'rejected');
       return matchSearch && matchFilter;
     }).toList();
   }
@@ -73,6 +76,8 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
         bankAccountNumber: store.bankAccountNumber,
         bankName: store.bankName,
         isAcceptingOrders: !store.isAcceptingOrders,
+        approvalStatus: store.approvalStatus,
+        rejectReason: store.rejectReason,
       );
 
       await _storeService.updateStore(store.id!, updated);
@@ -109,6 +114,162 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
         );
       }
     }
+  }
+
+  Future<void> _handleApproveStore(Store store) async {
+    try {
+      final success = await _storeService.approveStore(store.id!);
+      if (success) {
+        setState(() {
+          final idx = _allStores.indexWhere((s) => s.id == store.id);
+          if (idx != -1) {
+            _allStores[idx] = Store(
+              id: store.id,
+              name: store.name,
+              description: store.description,
+              address: store.address,
+              taxCode: store.taxCode,
+              businessLicense: store.businessLicense,
+              coverImageUrl: store.coverImageUrl,
+              logoUrl: store.logoUrl,
+              bankAccountNumber: store.bankAccountNumber,
+              bankName: store.bankName,
+              isAcceptingOrders: true,
+              rating: store.rating,
+              reviewCount: store.reviewCount,
+              approvalStatus: 'approved',
+              rejectReason: '',
+            );
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đã phê duyệt cửa hàng "${store.name}" thành công!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi phê duyệt cửa hàng: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showRejectDialog(Store store) {
+    final reasonCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Từ chối cửa hàng "${store.name}"', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Vui lòng nhập lý do từ chối đăng ký cửa hàng này:', style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: reasonCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Lý do từ chối (*)',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Lý do không được để trống';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final reason = reasonCtrl.text.trim();
+                Navigator.pop(ctx);
+                try {
+                  final success = await _storeService.rejectStore(store.id!, reason);
+                  if (success) {
+                    setState(() {
+                      final idx = _allStores.indexWhere((s) => s.id == store.id);
+                      if (idx != -1) {
+                        _allStores[idx] = Store(
+                          id: store.id,
+                          name: store.name,
+                          description: store.description,
+                          address: store.address,
+                          taxCode: store.taxCode,
+                          businessLicense: store.businessLicense,
+                          coverImageUrl: store.coverImageUrl,
+                          logoUrl: store.logoUrl,
+                          bankAccountNumber: store.bankAccountNumber,
+                          bankName: store.bankName,
+                          isAcceptingOrders: false,
+                          rating: store.rating,
+                          reviewCount: store.reviewCount,
+                          approvalStatus: 'rejected',
+                          rejectReason: reason,
+                        );
+                      }
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Đã từ chối cửa hàng "${store.name}"!'),
+                          backgroundColor: Colors.redAccent,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lỗi từ chối cửa hàng: $e'),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Từ chối'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -198,37 +359,44 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           const SizedBox(height: 24),
 
           // Search + Filter bar
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
-                  ),
-                  child: TextField(
-                    controller: _searchCtrl,
-                    onChanged: (_) => setState(() {}),
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm theo tên, địa chỉ...',
-                      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                      prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                    ),
-                  ),
-                ),
+          Container(
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)],
+            ),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Tìm kiếm theo tên, địa chỉ...',
+                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 13),
               ),
-              const SizedBox(width: 12),
-              _filterChip('Tất cả', 'all'),
-              const SizedBox(width: 8),
-              _filterChip('Đang mở', 'open'),
-              const SizedBox(width: 8),
-              _filterChip('Đã đóng', 'closed'),
-            ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _filterChip('Tất cả', 'all'),
+                const SizedBox(width: 8),
+                _filterChip('Chờ duyệt', 'pending'),
+                const SizedBox(width: 8),
+                _filterChip('Đã duyệt', 'approved'),
+                const SizedBox(width: 8),
+                _filterChip('Bị từ chối', 'rejected'),
+                const SizedBox(width: 8),
+                _filterChip('Đang mở cửa', 'open'),
+                const SizedBox(width: 8),
+                _filterChip('Đang đóng cửa', 'closed'),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -324,6 +492,10 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
 
   Widget _storeCard(Store store) {
     final isOpen = store.isAcceptingOrders;
+    final isPending = store.approvalStatus == 'pending';
+    final isRejected = store.approvalStatus == 'rejected';
+    final isApproved = store.approvalStatus == 'approved';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -331,7 +503,11 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
         border: Border.all(
-          color: isOpen ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.1),
+          color: isApproved
+              ? (isOpen ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.1))
+              : isPending
+                  ? Colors.amber.withOpacity(0.2)
+                  : Colors.red.withOpacity(0.15),
           width: 1,
         ),
       ),
@@ -411,13 +587,13 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              _statusBadge(isOpen),
+              _approvalBadge(store.approvalStatus, isOpen),
             ],
           ),
           const SizedBox(height: 12),
           const Divider(height: 1),
           const SizedBox(height: 12),
-          // Bottom row: description + toggle
+          // Bottom row: description + actions/toggle/reason
           Row(
             children: [
               Expanded(
@@ -429,10 +605,179 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              _toggleButton(store, isOpen),
+              if (isPending) ...[
+                _rejectButton(store),
+                const SizedBox(width: 8),
+                _approveButton(store),
+              ] else if (isApproved) ...[
+                _toggleButton(store, isOpen),
+              ] else if (isRejected) ...[
+                const Text(
+                  'Từ chối',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ],
             ],
           ),
+          if (isRejected && store.rejectReason != null && store.rejectReason!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.red.withOpacity(0.15)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 12, color: Colors.red),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Lý do: ${store.rejectReason}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _approvalBadge(String status, bool isOpen) {
+    Color bgColor;
+    Color textColor;
+    String label;
+    IconData icon;
+
+    if (status == 'pending') {
+      bgColor = Colors.amber.shade50;
+      textColor = Colors.amber.shade800;
+      label = 'Chờ duyệt';
+      icon = Icons.hourglass_empty;
+    } else if (status == 'rejected') {
+      bgColor = Colors.red.shade50;
+      textColor = Colors.red.shade800;
+      label = 'Bị từ chối';
+      icon = Icons.cancel_outlined;
+    } else {
+      // approved
+      bgColor = isOpen ? Colors.green.shade50 : Colors.grey.shade100;
+      textColor = isOpen ? Colors.green.shade800 : Colors.grey.shade700;
+      label = isOpen ? 'Mở cửa' : 'Đóng cửa';
+      icon = isOpen ? Icons.check_circle_outline : Icons.pause_circle_outline;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: textColor.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _approveButton(Store store) {
+    return InkWell(
+      onTap: () => _handleApproveStore(store),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.green.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.green.withOpacity(0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(
+              Icons.check_circle_outline,
+              size: 14,
+              color: Colors.green,
+            ),
+            SizedBox(width: 4),
+            Text(
+              'Duyệt',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.green,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _rejectButton(Store store) {
+    return InkWell(
+      onTap: () => _showRejectDialog(store),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.red.withOpacity(0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(
+              Icons.cancel_outlined,
+              size: 14,
+              color: Colors.red,
+            ),
+            SizedBox(width: 4),
+            Text(
+              'Từ chối',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -457,37 +802,6 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
     );
   }
 
-  Widget _statusBadge(bool isOpen) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isOpen ? Colors.green.withOpacity(0.12) : Colors.red.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: isOpen ? Colors.green : Colors.red,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            isOpen ? 'Mở cửa' : 'Đóng cửa',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: isOpen ? Colors.green.shade700 : Colors.red.shade700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _toggleButton(Store store, bool isOpen) {
     return Tooltip(

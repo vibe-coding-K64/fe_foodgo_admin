@@ -17,9 +17,14 @@ class AdminStatsApiService {
     return e.toString();
   }
 
-  Future<Map<String, dynamic>> getSystemStats() async {
+  Future<Map<String, dynamic>> getSystemStats({String? period, String? from, String? to}) async {
     try {
-      final response = await _dio.get('/admin/stats');
+      final Map<String, dynamic> params = {};
+      if (period != null) params['period'] = period;
+      if (from != null) params['from'] = from;
+      if (to != null) params['to'] = to;
+
+      final response = await _dio.get('/admin/stats', queryParameters: params);
       if (response.statusCode == 200) {
         return Map<String, dynamic>.from(response.data);
       }

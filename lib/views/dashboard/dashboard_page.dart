@@ -23,11 +23,20 @@ class _MyDashboardState extends State<MyDashboard> {
   int _totalStores = 0;
   int _totalDrivers = 0;
   int _totalCustomers = 0;
-  List<double> _weeklyRevenue = [0, 0, 0, 0, 0, 0, 0];
   List<Map<String, dynamic>> _topStores = [];
 
   List<model.Order> _recentOrders = [];
   Map<String, int> _statusCount = {};
+
+  // Time filter variables
+  String _selectedPeriod = 'week';
+  DateTimeRange? _selectedDateRange;
+  double _periodRevenue = 0.0;
+  int _periodOrders = 0;
+  double _prevPeriodRevenue = 0.0;
+  int _prevPeriodOrders = 0;
+  double _revenueGrowth = 0.0;
+  List<double> _periodDailyRevenue = [];
 
   @override
   void initState() {
@@ -42,7 +51,19 @@ class _MyDashboardState extends State<MyDashboard> {
     });
 
     try {
-      final stats = await _statsApiService.getSystemStats();
+      String? fromStr;
+      String? toStr;
+      if (_selectedPeriod == 'custom' && _selectedDateRange != null) {
+        fromStr = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.start);
+        toStr = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end);
+      }
+
+      final stats = await _statsApiService.getSystemStats(
+        period: _selectedPeriod,
+        from: fromStr,
+        to: toStr,
+      );
+
       final allOrders = await _orderApiService.getAllPlatformOrders();
 
       // Aggregate status counts
@@ -66,12 +87,20 @@ class _MyDashboardState extends State<MyDashboard> {
         _totalStores = (stats['totalStores'] as num?)?.toInt() ?? 0;
         _totalDrivers = (stats['totalDrivers'] as num?)?.toInt() ?? 0;
         _totalCustomers = (stats['totalCustomers'] as num?)?.toInt() ?? 0;
-        
-        final List<dynamic>? weeklyList = stats['weeklyRevenue'];
-        if (weeklyList != null) {
-          _weeklyRevenue = weeklyList.map((e) => (e as num).toDouble()).toList();
+
+        _periodRevenue = (stats['periodRevenue'] as num?)?.toDouble() ?? 0.0;
+        _periodOrders = (stats['periodOrders'] as num?)?.toInt() ?? 0;
+        _prevPeriodRevenue = (stats['prevPeriodRevenue'] as num?)?.toDouble() ?? 0.0;
+        _prevPeriodOrders = (stats['prevPeriodOrders'] as num?)?.toInt() ?? 0;
+        _revenueGrowth = (stats['revenueGrowth'] as num?)?.toDouble() ?? 0.0;
+
+        final List<dynamic>? dailyList = stats['periodDailyRevenue'] ?? stats['weeklyRevenue'];
+        if (dailyList != null) {
+          _periodDailyRevenue = dailyList.map((e) => (e as num).toDouble()).toList();
+        } else {
+          _periodDailyRevenue = [];
         }
-        
+
         final List<dynamic>? topStoresList = stats['topStores'];
         if (topStoresList != null) {
           _topStores = topStoresList.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -87,6 +116,67 @@ class _MyDashboardState extends State<MyDashboard> {
         _isLoading = false;
         _errorMessage = 'Không thể kết nối API thống kê hệ thống: $e';
       });
+    }
+  }
+
+  Widget _buildPeriodChip(String value, String label) {
+    final isSelected = _selectedPeriod == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _selectedPeriod = value;
+            if (value != 'custom') {
+              _loadDashboardData();
+            } else {
+              _selectDateRange();
+            }
+          });
+        }
+      },
+      selectedColor: const Color(0xFFFF6B35),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : Colors.black87,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: isSelected ? Colors.transparent : Colors.grey.shade300),
+      ),
+    );
+  }
+
+  Future<void> _selectDateRange() async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: _selectedDateRange ?? DateTimeRange(
+        start: DateTime.now().subtract(const Duration(days: 7)),
+        end: DateTime.now(),
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFFF6B35),
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDateRange = picked;
+      });
+      _loadDashboardData();
     }
   }
 
@@ -185,15 +275,76 @@ class _MyDashboardState extends State<MyDashboard> {
                   )
                 ],
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 16),
+
+              // Period Filter row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      _buildPeriodChip('today', 'Hôm nay'),
+                      const SizedBox(width: 8),
+                      _buildPeriodChip('week', 'Tuần này'),
+                      const SizedBox(width: 8),
+                      _buildPeriodChip('month', 'Tháng này'),
+                      const SizedBox(width: 8),
+                      _buildPeriodChip('custom', 'Tùy chỉnh'),
+                      if (_selectedPeriod == 'custom') ...[
+                        const SizedBox(width: 12),
+                        OutlinedButton.icon(
+                          onPressed: _selectDateRange,
+                          icon: const Icon(Icons.date_range, size: 16),
+                          label: Text(_selectedDateRange == null 
+                            ? 'Chọn khoảng ngày' 
+                            : '${DateFormat('dd/MM').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM').format(_selectedDateRange!.end)}'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFFF6B35),
+                            side: const BorderSide(color: Color(0xFFFF6B35)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _revenueGrowth >= 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: _revenueGrowth >= 0 ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _revenueGrowth >= 0 ? Icons.trending_up : Icons.trending_down,
+                          color: _revenueGrowth >= 0 ? Colors.green : Colors.red,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Doanh thu ${_revenueGrowth >= 0 ? 'tăng ↑' : 'giảm ↓'} ${_revenueGrowth.abs().toStringAsFixed(1)}% so với kỳ trước',
+                          style: TextStyle(
+                            color: _revenueGrowth >= 0 ? Colors.green[800] : Colors.red[800],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
 
               // STATS GRID CARD
               Row(
                 children: [
                   Expanded(
                     child: _buildStatCard(
-                      "Tổng Doanh Thu Sàn",
-                      _formatMoney(_totalRevenue),
+                      _selectedPeriod == 'today' ? "Doanh thu Hôm nay" : (_selectedPeriod == 'week' ? "Doanh thu Tuần này" : (_selectedPeriod == 'month' ? "Doanh thu Tháng này" : "Doanh thu Kỳ chọn")),
+                      _formatMoney(_periodRevenue),
                       Icons.monetization_on_outlined,
                       [const Color(0xFF4CAF50), const Color(0xFF8BC34A)],
                     ),
@@ -201,8 +352,8 @@ class _MyDashboardState extends State<MyDashboard> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatCard(
-                      "Tổng Đơn Hàng",
-                      _totalOrders.toString(),
+                      _selectedPeriod == 'today' ? "Đơn hàng Hôm nay" : (_selectedPeriod == 'week' ? "Đơn hàng Tuần này" : (_selectedPeriod == 'month' ? "Đơn hàng Tháng này" : "Đơn hàng Kỳ chọn")),
+                      _periodOrders.toString(),
                       Icons.shopping_bag_outlined,
                       [const Color(0xFF2196F3), const Color(0xFF00BCD4)],
                     ),
@@ -242,13 +393,13 @@ class _MyDashboardState extends State<MyDashboard> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Weekly Sales
+                  // Sales Analaysis
                   Expanded(
                     flex: 3,
                     child: Column(
                       children: [
                         _buildCardContainer(
-                          title: "Phân Tích Doanh Thu Tuần Này",
+                          title: _selectedPeriod == 'today' ? "Phân Tích Doanh Thu Hôm Nay" : (_selectedPeriod == 'week' ? "Phân Tích Doanh Thu Tuần Này" : (_selectedPeriod == 'month' ? "Phân Tích Doanh Thu Tháng Này" : "Phân Tích Doanh Thu Kỳ Chọn")),
                           child: SizedBox(
                             height: 300,
                             child: LineChart(_mainLineData()),
@@ -513,7 +664,7 @@ class _MyDashboardState extends State<MyDashboard> {
   }
 
   LineChartData _mainLineData() {
-    double maxVal = _weeklyRevenue.reduce((a, b) => a > b ? a : b);
+    double maxVal = _periodDailyRevenue.isEmpty ? 0 : _periodDailyRevenue.reduce((a, b) => a > b ? a : b);
     if (maxVal == 0) maxVal = 100000;
     
     return LineChartData(
@@ -542,12 +693,28 @@ class _MyDashboardState extends State<MyDashboard> {
           sideTitles: SideTitles(
             showTitles: true,
             getTitlesWidget: (value, meta) {
-              const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-              if (value.toInt() >= 0 && value.toInt() < days.length) {
+              final int idx = value.toInt();
+              if (idx < 0 || idx >= _periodDailyRevenue.length) return const SizedBox();
+              
+              if (_periodDailyRevenue.length == 7) {
+                const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
                 return Padding(
                   padding: const EdgeInsets.only(top: 10),
-                  child: Text(days[value.toInt()], style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                  child: Text(days[idx], style: TextStyle(color: Colors.grey[500], fontSize: 12)),
                 );
+              } else if (_periodDailyRevenue.length == 1) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text("Hôm nay", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                );
+              } else {
+                final interval = (_periodDailyRevenue.length / 5).ceil();
+                if (idx % interval == 0 || idx == _periodDailyRevenue.length - 1) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text('${idx + 1}', style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+                  );
+                }
               }
               return const SizedBox();
             },
@@ -557,11 +724,11 @@ class _MyDashboardState extends State<MyDashboard> {
       borderData: FlBorderData(show: false),
       lineBarsData: [
         LineChartBarData(
-          spots: List.generate(7, (i) => FlSpot(i.toDouble(), _weeklyRevenue[i])),
-          isCurved: true,
+          spots: List.generate(_periodDailyRevenue.length, (i) => FlSpot(i.toDouble(), _periodDailyRevenue[i])),
+          isCurved: _periodDailyRevenue.length > 1,
           gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Colors.orangeAccent]),
           barWidth: 4,
-          dotData: const FlDotData(show: true),
+          dotData: FlDotData(show: _periodDailyRevenue.length < 15),
           belowBarData: BarAreaData(
             show: true,
             gradient: LinearGradient(

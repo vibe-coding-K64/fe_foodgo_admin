@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Sidebar extends StatefulWidget {
   final Function(String) onNavigate;
@@ -15,6 +16,54 @@ class Sidebar extends StatefulWidget {
 }
 
 class _SidebarState extends State<Sidebar> {
+  List<String> _permissions = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPermissions();
+  }
+
+  Future<void> _loadPermissions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        _permissions = prefs.getStringList('admin_permissions') ?? [];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool _hasPermission(String route) {
+    if (_isLoading) return true; // Tránh flicker lúc load
+    // Nếu có quyền 'all' hoặc danh sách trống (chưa setup / cũ) thì mặc định cho xem
+    if (_permissions.isEmpty || _permissions.contains('all') || _permissions.contains('super_admin')) {
+      return true;
+    }
+
+    if (route == '/dashboard') {
+      return _permissions.contains('view_reports');
+    }
+    if (route == '/users') {
+      return _permissions.contains('manage_users');
+    }
+    if (route == '/stores') {
+      return _permissions.contains('manage_stores');
+    }
+    if (route == '/drivers') {
+      return _permissions.contains('manage_users');
+    }
+    if (route == '/orders') {
+      return _permissions.contains('manage_orders');
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -90,10 +139,14 @@ class _SidebarState extends State<Sidebar> {
               children: [
                 // HỆ THỐNG
                 _section('HỆ THỐNG'),
-                _item(Icons.dashboard_outlined, 'Bảng điều khiển', '/dashboard'),
-                _item(Icons.people_outline, 'Người dùng & Phân quyền', '/users'),
-                _item(Icons.store_outlined, 'Cửa hàng', '/stores'),
-                _item(Icons.two_wheeler_rounded, 'Tài xế', '/drivers'),
+                if (_hasPermission('/dashboard'))
+                  _item(Icons.dashboard_outlined, 'Bảng điều khiển', '/dashboard'),
+                if (_hasPermission('/users'))
+                  _item(Icons.people_outline, 'Người dùng & Phân quyền', '/users'),
+                if (_hasPermission('/stores'))
+                  _item(Icons.store_outlined, 'Cửa hàng', '/stores'),
+                if (_hasPermission('/drivers'))
+                  _item(Icons.two_wheeler_rounded, 'Tài xế', '/drivers'),
                 _item(Icons.settings_outlined, 'Cấu hình hệ thống', '/settings'),
 
                 // NỘI DUNG
@@ -103,7 +156,8 @@ class _SidebarState extends State<Sidebar> {
 
                 // KINH DOANH
                 _section('KINH DOANH'),
-                _item(Icons.shopping_bag_outlined, 'Đơn hàng toàn sàn', '/orders'),
+                if (_hasPermission('/orders'))
+                  _item(Icons.shopping_bag_outlined, 'Đơn hàng toàn sàn', '/orders'),
                 _item(Icons.local_offer_outlined, 'Mã giảm giá', '/vouchers'),
                 _item(Icons.star_outline, 'Đánh giá', '/reviews'),
 

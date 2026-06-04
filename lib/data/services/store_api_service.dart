@@ -57,4 +57,24 @@ class StoreApiService {
       throw 'Lỗi tải danh sách: $e';
     }
   }
+
+  // Duyệt cửa hàng
+  Future<bool> approveStore(String id) async {
+    try {
+      final response = await _dio.post('/stores/$id/approve');
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      throw 'Lỗi duyệt cửa hàng: $e';
+    }
+  }
+
+  // Từ chối cửa hàng
+  Future<bool> rejectStore(String id, String reason) async {
+    try {
+      final response = await _dio.post('/stores/$id/reject', data: {'reason': reason});
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      throw 'Lỗi từ chối cửa hàng: $e';
+    }
+  }
 }
