@@ -297,6 +297,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
 
   Widget _field(String label, TextEditingController ctrl, IconData icon,
       {bool required = false, TextInputType? keyboardType, int? maxLines = 1, String? Function(String?)? validator}) {
+    final isMultiLine = maxLines != null && maxLines > 1;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -314,7 +315,19 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
         },
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFFFF6B35), size: 20),
+          alignLabelWithHint: isMultiLine,
+          prefixIcon: isMultiLine
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14, left: 12, right: 8),
+                      child: Icon(icon, color: const Color(0xFFFF6B35), size: 20),
+                    ),
+                  ],
+                )
+              : Icon(icon, color: const Color(0xFFFF6B35), size: 20),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFFF6B35))),
           filled: true,
@@ -338,10 +351,18 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
           const Text('Xem trước', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
           const Divider(height: 20),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF8C42)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(12),
+              image: _imageUrl != null && _imageUrl!.isNotEmpty
+                  ? DecorationImage(
+                      image: NetworkImage(_imageUrl!),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.35), BlendMode.darken),
+                    )
+                  : null,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
