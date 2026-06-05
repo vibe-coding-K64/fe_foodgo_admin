@@ -27,7 +27,6 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
   // New controllers and states
   final _titleCtrl = TextEditingController();
   final _subtitleCtrl = TextEditingController();
-  String? _imageUrl;
   final _termsCtrl = TextEditingController();
   final _pointsCtrl = TextEditingController();
   final _remainingCtrl = TextEditingController();
@@ -52,7 +51,6 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       // Initialize new fields
       _titleCtrl.text = v.title;
       _subtitleCtrl.text = v.subtitle;
-      _imageUrl = v.imageUrl;
       _termsCtrl.text = v.terms;
       _pointsCtrl.text = v.pointsRequired.toString();
       _remainingCtrl.text = v.remaining.toString();
@@ -164,30 +162,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                         _field('Tiêu đề hiển thị (VD: Giảm 20K toàn sàn)', _titleCtrl, Icons.title,
                             required: true),
                         _field('Mô tả ngắn / Phụ đề (VD: HSD 30 ngày)', _subtitleCtrl, Icons.subtitles),
-                        const Text(
-                          'Hình ảnh Voucher',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E1E2D)),
-                        ),
-                        const SizedBox(height: 8),
-                        ImagePickerWidget(
-                          initialImageUrl: _imageUrl,
-                          folder: 'vouchers',
-                          label: 'Chọn ảnh voucher',
-                          width: 140,
-                          height: 140,
-                          onImageUploaded: (url) {
-                            setState(() {
-                              _imageUrl = url;
-                            });
-                          },
-                          onImageCleared: () {
-                            setState(() {
-                              _imageUrl = '';
-                            });
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        _field('Điều khoản sử dụng', _termsCtrl, Icons.description_outlined, maxLines: 3),
+                        _field('Điều khoản sử dụng', _termsCtrl, Icons.description_outlined),
                         SwitchListTile(
                           title: const Text('Mã vận chuyển miễn phí (Freeship)', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                           subtitle: const Text('Bật nếu đây là mã giảm phí vận chuyển'),
@@ -356,13 +331,6 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
             decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [Color(0xFFFF6B35), Color(0xFFFF8C42)], begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(12),
-              image: _imageUrl != null && _imageUrl!.isNotEmpty
-                  ? DecorationImage(
-                      image: NetworkImage(_imageUrl!),
-                      fit: BoxFit.cover,
-                      colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.35), BlendMode.darken),
-                    )
-                  : null,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,7 +487,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
           isActive: true,
           title: _titleCtrl.text.trim(),
           subtitle: _subtitleCtrl.text.trim(),
-          imageUrl: _imageUrl ?? '',
+          imageUrl: '',
           pointsRequired: int.tryParse(_pointsCtrl.text.trim()) ?? 0,
           remaining: int.tryParse(_remainingCtrl.text.trim()) ?? (int.tryParse(_limitCtrl.text.trim()) ?? 0),
           terms: _termsCtrl.text.trim(),
