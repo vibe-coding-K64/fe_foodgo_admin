@@ -77,4 +77,24 @@ class StoreApiService {
       throw 'Lỗi từ chối cửa hàng: $e';
     }
   }
+
+  // Tạm khóa cửa hàng
+  Future<bool> lockStore(String id, String reason) async {
+    try {
+      final response = await _dio.post('/stores/$id/lock', data: {'reason': reason});
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      throw 'Lỗi tạm khóa cửa hàng: $e';
+    }
+  }
+
+  // Mở khóa cửa hàng
+  Future<bool> unlockStore(String id) async {
+    try {
+      final response = await _dio.post('/stores/$id/unlock');
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      throw 'Lỗi mở khóa cửa hàng: $e';
+    }
+  }
 }

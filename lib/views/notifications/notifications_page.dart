@@ -201,10 +201,10 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
       await _markAsRead(id, originalIndex);
     }
 
-    final orderId = n['orderId'] as String? ?? '';
+    final orderId = n['orderId'] as String? ?? n['referenceId'] as String? ?? '';
     final type = n['type']?.toString() ?? '';
 
-    if (orderId.isNotEmpty && widget.onNavigate != null) {
+    if (orderId.isNotEmpty && (type == 'order' || type == '11' || type == '1' || type == '13') && widget.onNavigate != null) {
       try {
         showDialog(
           context: context,
@@ -221,7 +221,7 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         Navigator.pop(context); // close loading
         _showToast('Lỗi tải chi tiết đơn hàng: $e', Colors.red);
       }
-    } else if ((type == '41' || type == 'payment' || type == 'wallet') && widget.onNavigate != null) {
+    } else if ((type == '41' || type == '12' || type == 'payment' || type == 'wallet') && widget.onNavigate != null) {
       widget.onNavigate!('/finance/withdrawal');
     } else if ((type == 'review' || type == '31') && widget.onNavigate != null) {
       widget.onNavigate!('/reviews');
