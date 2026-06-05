@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/models/voucher_model.dart';
 import '../../data/services/voucher_api_service.dart';
+import '../widgets/image_picker_widget.dart';
 
 /// Form dùng chung thêm/sửa voucher
 class VoucherFormPage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
   // New controllers and states
   final _titleCtrl = TextEditingController();
   final _subtitleCtrl = TextEditingController();
-  final _imageUrlCtrl = TextEditingController();
+  String? _imageUrl;
   final _termsCtrl = TextEditingController();
   final _pointsCtrl = TextEditingController();
   final _remainingCtrl = TextEditingController();
@@ -51,7 +52,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       // Initialize new fields
       _titleCtrl.text = v.title;
       _subtitleCtrl.text = v.subtitle;
-      _imageUrlCtrl.text = v.imageUrl;
+      _imageUrl = v.imageUrl;
       _termsCtrl.text = v.terms;
       _pointsCtrl.text = v.pointsRequired.toString();
       _remainingCtrl.text = v.remaining.toString();
@@ -163,7 +164,29 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                         _field('Tiêu đề hiển thị (VD: Giảm 20K toàn sàn)', _titleCtrl, Icons.title,
                             required: true),
                         _field('Mô tả ngắn / Phụ đề (VD: HSD 30 ngày)', _subtitleCtrl, Icons.subtitles),
-                        _field('Đường dẫn hình ảnh (URL)', _imageUrlCtrl, Icons.image_outlined),
+                        const Text(
+                          'Hình ảnh Voucher',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E1E2D)),
+                        ),
+                        const SizedBox(height: 8),
+                        ImagePickerWidget(
+                          initialImageUrl: _imageUrl,
+                          folder: 'vouchers',
+                          label: 'Chọn ảnh voucher',
+                          width: 140,
+                          height: 140,
+                          onImageUploaded: (url) {
+                            setState(() {
+                              _imageUrl = url;
+                            });
+                          },
+                          onImageCleared: () {
+                            setState(() {
+                              _imageUrl = '';
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
                         _field('Điều khoản sử dụng', _termsCtrl, Icons.description_outlined, maxLines: 3),
                         SwitchListTile(
                           title: const Text('Mã vận chuyển miễn phí (Freeship)', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
@@ -475,7 +498,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
           isActive: true,
           title: _titleCtrl.text.trim(),
           subtitle: _subtitleCtrl.text.trim(),
-          imageUrl: _imageUrlCtrl.text.trim(),
+          imageUrl: _imageUrl ?? '',
           pointsRequired: int.tryParse(_pointsCtrl.text.trim()) ?? 0,
           remaining: int.tryParse(_remainingCtrl.text.trim()) ?? (int.tryParse(_limitCtrl.text.trim()) ?? 0),
           terms: _termsCtrl.text.trim(),
