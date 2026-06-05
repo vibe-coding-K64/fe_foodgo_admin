@@ -4,6 +4,7 @@ import '../../data/models/category_model.dart';
 import '../../data/services/product_api_service.dart';
 import '../../data/services/category_api_service.dart';
 import '../../data/services/auth_service.dart';
+import '../widgets/image_picker_widget.dart';
 
 class ProductFormPage extends StatefulWidget {
   final bool isEdit;
@@ -207,43 +208,23 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   child: Column(
                     children: [
                       _buildCard('Hình ảnh và trạng thái', [
-                        _field('URL Hình ảnh (Bắt đầu bằng http...)', _imageUrlCtrl, Icons.link),
-                        const SizedBox(height: 16),
-                        if (_imageUrlCtrl.text.isNotEmpty)
-                          Container(
-                            height: 160,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey.shade200),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                _imageUrlCtrl.text,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, size: 40, color: Colors.grey)),
-                              ),
-                            ),
-                          )
-                        else
-                          Container(
-                            height: 160,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey.shade200),
-                              color: const Color(0xFFF9F9F9),
-                            ),
-                            child: const Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_outlined, size: 40, color: Colors.grey),
-                                SizedBox(height: 8),
-                                Text('Chưa có hình ảnh', style: TextStyle(color: Colors.grey)),
-                              ],
-                            ),
-                          ),
+                        ImagePickerWidget(
+                          initialImageUrl: _imageUrlCtrl.text,
+                          folder: 'products',
+                          label: 'Chọn ảnh món ăn',
+                          width: double.infinity,
+                          height: 180,
+                          onImageUploaded: (url) {
+                            setState(() {
+                              _imageUrlCtrl.text = url;
+                            });
+                          },
+                          onImageCleared: () {
+                            setState(() {
+                              _imageUrlCtrl.text = '';
+                            });
+                          },
+                        ),
                         const SizedBox(height: 16),
                         const Divider(),
                         const SizedBox(height: 8),

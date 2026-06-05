@@ -151,8 +151,10 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
     if (timestamp is String) {
       final parsed = DateTime.tryParse(timestamp);
       if (parsed != null) {
-        return DateFormat('dd/MM/yyyy HH:mm').format(parsed);
+        return DateFormat('dd/MM/yyyy HH:mm').format(parsed.toLocal());
       }
+    } else if (timestamp is int) {
+      return DateFormat('dd/MM/yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(timestamp).toLocal());
     }
     return timestamp.toString();
   }
@@ -369,7 +371,7 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
               ..._pendingWithdrawals.map((w) {
                 final id = w['id'] ?? '';
                 final userId = w['userId'] ?? 'Chưa rõ';
-                final amount = (w['amount'] ?? 0.0) as double;
+                final double amount = (w['amount'] as num?)?.toDouble() ?? 0.0;
                 final description = w['description'] ?? 'Yêu cầu rút tiền';
                 
                 // Deduce role from userId format or dummy

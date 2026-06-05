@@ -53,11 +53,12 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           s.name.toLowerCase().contains(query) ||
           s.address.toLowerCase().contains(query);
       final matchFilter = _filterStatus == 'all' ||
-          (_filterStatus == 'open' && s.isAcceptingOrders && s.approvalStatus == 'approved') ||
-          (_filterStatus == 'closed' && !s.isAcceptingOrders && s.approvalStatus == 'approved') ||
+          (_filterStatus == 'open' && s.isAcceptingOrders && s.approvalStatus == 'approved' && s.adminLockedReason == null) ||
+          (_filterStatus == 'closed' && !s.isAcceptingOrders && s.approvalStatus == 'approved' && s.adminLockedReason == null) ||
           (_filterStatus == 'pending' && s.approvalStatus == 'pending') ||
           (_filterStatus == 'approved' && s.approvalStatus == 'approved') ||
-          (_filterStatus == 'rejected' && s.approvalStatus == 'rejected');
+          (_filterStatus == 'rejected' && s.approvalStatus == 'rejected') ||
+          (_filterStatus == 'locked' && s.adminLockedReason != null);
       return matchSearch && matchFilter;
     }).toList();
   }
@@ -312,8 +313,9 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
     }
 
     final stores = _filteredStores;
-    final openCount = _allStores.where((s) => s.isAcceptingOrders).length;
-    final closedCount = _allStores.length - openCount;
+    final openCount = _allStores.where((s) => s.isAcceptingOrders && s.approvalStatus == 'approved' && s.adminLockedReason == null).length;
+    final closedCount = _allStores.where((s) => !s.isAcceptingOrders && s.approvalStatus == 'approved' && s.adminLockedReason == null).length;
+    final lockedCount = _allStores.where((s) => s.adminLockedReason != null).length;
 
     return SingleChildScrollView(
       child: Column(
@@ -353,7 +355,9 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
               const SizedBox(width: 16),
               _statCard('Đang mở', '$openCount', Icons.check_circle_outline, Colors.green),
               const SizedBox(width: 16),
-              _statCard('Đã đóng', '$closedCount', Icons.cancel_outlined, Colors.red),
+              _statCard('Đã đóng', '$closedCount', Icons.cancel_outlined, Colors.orange),
+              const SizedBox(width: 16),
+              _statCard('Tạm khóa', '$lockedCount', Icons.lock_outline, Colors.red),
             ],
           ),
           const SizedBox(height: 24),
@@ -391,6 +395,8 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                 _filterChip('Đã duyệt', 'approved'),
                 const SizedBox(width: 8),
                 _filterChip('Bị từ chối', 'rejected'),
+                const SizedBox(width: 8),
+                _filterChip('Bị tạm khóa', 'locked'),
                 const SizedBox(width: 8),
                 _filterChip('Đang mở cửa', 'open'),
                 const SizedBox(width: 8),
@@ -496,8 +502,15 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
     final isRejected = store.approvalStatus == 'rejected';
     final isApproved = store.approvalStatus == 'approved';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return InkWell(
+      onTap: () {
+        if (widget.onNavigate != null) {
+          widget.onNavigate!('/store/stats?id=${store.id}&name=${Uri.encodeComponent(store.name)}');
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -587,7 +600,7 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              _approvalBadge(store.approvalStatus, isOpen),
+              _approvalBadge(store, isOpen),
             ],
           ),
           const SizedBox(height: 12),
@@ -623,6 +636,36 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
               ],
             ],
           ),
+          if (store.adminLockedReason != null && store.adminLockedReason!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.red.withOpacity(0.15)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lock_outline, size: 12, color: Colors.red),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Lý do khóa: ${store.adminLockedReason}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (isRejected && store.rejectReason != null && store.rejectReason!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
@@ -655,10 +698,11 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           ],
         ],
       ),
-    );
+    ));
   }
 
-  Widget _approvalBadge(String status, bool isOpen) {
+  Widget _approvalBadge(Store store, bool isOpen) {
+    final status = store.approvalStatus;
     Color bgColor;
     Color textColor;
     String label;
@@ -674,6 +718,11 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
       textColor = Colors.red.shade800;
       label = 'Bị từ chối';
       icon = Icons.cancel_outlined;
+    } else if (store.adminLockedReason != null) {
+      bgColor = Colors.red.shade50;
+      textColor = Colors.red.shade800;
+      label = 'Bị tạm khóa';
+      icon = Icons.lock_outline;
     } else {
       // approved
       bgColor = isOpen ? Colors.green.shade50 : Colors.grey.shade100;
@@ -804,38 +853,39 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
 
 
   Widget _toggleButton(Store store, bool isOpen) {
+    final isLocked = store.adminLockedReason != null;
     return Tooltip(
-      message: isOpen ? 'Đóng cửa hàng' : 'Mở cửa hàng',
+      message: isLocked ? 'Mở khóa cửa hàng' : 'Tạm khóa cửa hàng',
       child: InkWell(
-        onTap: () => _toggleStatus(store),
+        onTap: () => isLocked ? _handleUnlockStore(store) : _showLockDialog(store),
         borderRadius: BorderRadius.circular(8),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: isOpen
-                ? Colors.orange.withOpacity(0.1)
-                : const Color(0xFFFF6B35).withOpacity(0.1),
+            color: isLocked
+                ? Colors.green.withOpacity(0.1)
+                : Colors.red.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isOpen ? Colors.orange.shade300 : const Color(0xFFFF6B35).withOpacity(0.4),
+              color: isLocked ? Colors.green.shade300 : Colors.red.shade300,
             ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isOpen ? Icons.pause_circle_outline : Icons.play_circle_outline,
+                isLocked ? Icons.lock_open : Icons.lock_outline,
                 size: 14,
-                color: isOpen ? Colors.orange : const Color(0xFFFF6B35),
+                color: isLocked ? Colors.green : Colors.red,
               ),
               const SizedBox(width: 4),
               Text(
-                isOpen ? 'Đóng' : 'Mở',
+                isLocked ? 'Mở khóa' : 'Tạm khóa',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isOpen ? Colors.orange : const Color(0xFFFF6B35),
+                  color: isLocked ? Colors.green : Colors.red,
                 ),
               ),
             ],
@@ -843,6 +893,164 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
         ),
       ),
     );
+  }
+
+  void _showLockDialog(Store store) {
+    final reasonCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Tạm khóa cửa hàng "${store.name}"', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Vui lòng nhập lý do tạm khóa cửa hàng này:', style: TextStyle(fontSize: 14)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: reasonCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Lý do khóa (*)',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red),
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Lý do không được để trống';
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final reason = reasonCtrl.text.trim();
+                Navigator.pop(ctx);
+                try {
+                  final success = await _storeService.lockStore(store.id!, reason);
+                  if (success) {
+                    setState(() {
+                      final idx = _allStores.indexWhere((s) => s.id == store.id);
+                      if (idx != -1) {
+                        _allStores[idx] = Store(
+                          id: store.id,
+                          name: store.name,
+                          description: store.description,
+                          address: store.address,
+                          taxCode: store.taxCode,
+                          businessLicense: store.businessLicense,
+                          coverImageUrl: store.coverImageUrl,
+                          logoUrl: store.logoUrl,
+                          bankAccountNumber: store.bankAccountNumber,
+                          bankName: store.bankName,
+                          isAcceptingOrders: false,
+                          rating: store.rating,
+                          reviewCount: store.reviewCount,
+                          approvalStatus: store.approvalStatus,
+                          rejectReason: store.rejectReason,
+                          adminLockedReason: reason,
+                        );
+                      }
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Đã tạm khóa cửa hàng "${store.name}"!'),
+                          backgroundColor: Colors.redAccent,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Lỗi tạm khóa cửa hàng: $e'),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }
+              }
+            },
+            child: const Text('Tạm khóa'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleUnlockStore(Store store) async {
+    try {
+      final success = await _storeService.unlockStore(store.id!);
+      if (success) {
+        setState(() {
+          final idx = _allStores.indexWhere((s) => s.id == store.id);
+          if (idx != -1) {
+            _allStores[idx] = Store(
+              id: store.id,
+              name: store.name,
+              description: store.description,
+              address: store.address,
+              taxCode: store.taxCode,
+              businessLicense: store.businessLicense,
+              coverImageUrl: store.coverImageUrl,
+              logoUrl: store.logoUrl,
+              bankAccountNumber: store.bankAccountNumber,
+              bankName: store.bankName,
+              isAcceptingOrders: true,
+              rating: store.rating,
+              reviewCount: store.reviewCount,
+              approvalStatus: store.approvalStatus,
+              rejectReason: store.rejectReason,
+              adminLockedReason: null,
+            );
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Đã mở khóa cửa hàng "${store.name}" thành công!'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi mở khóa cửa hàng: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Widget _emptyState() {
@@ -1071,7 +1279,7 @@ class _StoreReviewsDialogContentState extends State<StoreReviewsDialogContent> {
                             String dateStr = 'Mới đây';
                             if (createdAt != null) {
                               try {
-                                final parsed = DateTime.parse(createdAt.toString());
+                                final parsed = DateTime.parse(createdAt.toString()).toLocal();
                                 dateStr = DateFormat('dd/MM/yyyy HH:mm').format(parsed);
                               } catch (_) {}
                             }

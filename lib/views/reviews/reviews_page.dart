@@ -287,7 +287,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
     String dateStr = 'Mới đây';
     if (review['createdAt'] != null) {
       try {
-        final parsed = DateTime.parse(review['createdAt'].toString());
+        final parsed = DateTime.parse(review['createdAt'].toString()).toLocal();
         dateStr = DateFormat('dd/MM/yyyy HH:mm').format(parsed);
       } catch (_) {}
     }

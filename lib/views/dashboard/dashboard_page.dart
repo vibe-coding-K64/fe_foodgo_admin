@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/services/admin_stats_api_service.dart';
 import '../../data/services/order_api_service.dart';
 import '../../data/models/order_model.dart' as model;
+import '../../data/services/admin_transaction_api_service.dart';
 
 class MyDashboard extends StatefulWidget {
-  const MyDashboard({super.key});
+  final Function(String)? onNavigate;
+  const MyDashboard({super.key, this.onNavigate});
   @override
   State<MyDashboard> createState() => _MyDashboardState();
 }
@@ -14,6 +17,7 @@ class MyDashboard extends StatefulWidget {
 class _MyDashboardState extends State<MyDashboard> {
   final AdminStatsApiService _statsApiService = AdminStatsApiService();
   final OrderApiService _orderApiService = OrderApiService();
+  final AdminTransactionApiService _transactionApiService = AdminTransactionApiService();
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -24,6 +28,9 @@ class _MyDashboardState extends State<MyDashboard> {
   int _totalDrivers = 0;
   int _totalCustomers = 0;
   List<Map<String, dynamic>> _topStores = [];
+  int _pendingWithdrawalsCount = 0;
+
+  // Removed Merchant variables
 
   List<model.Order> _recentOrders = [];
   Map<String, int> _statusCount = {};
@@ -58,13 +65,23 @@ class _MyDashboardState extends State<MyDashboard> {
         toStr = DateFormat('yyyy-MM-dd').format(_selectedDateRange!.end);
       }
 
-      final stats = await _statsApiService.getSystemStats(
+      final Map<String, dynamic> stats;
+      final List<model.Order> allOrders;
+
+      stats = await _statsApiService.getSystemStats(
         period: _selectedPeriod,
         from: fromStr,
         to: toStr,
       );
-
-      final allOrders = await _orderApiService.getAllPlatformOrders();
+      allOrders = await _orderApiService.getAllPlatformOrders();
+      
+      int pendingWithdrawals = 0;
+      try {
+        final list = await _transactionApiService.getPendingWithdrawals();
+        pendingWithdrawals = list.length;
+      } catch (err) {
+        debugPrint("Error loading pending withdrawals for dashboard: $err");
+      }
 
       // Aggregate status counts
       final counts = <String, int>{};
@@ -84,6 +101,7 @@ class _MyDashboardState extends State<MyDashboard> {
       setState(() {
         _totalRevenue = (stats['totalRevenue'] as num?)?.toDouble() ?? 0.0;
         _totalOrders = (stats['totalOrders'] as num?)?.toInt() ?? 0;
+        
         _totalStores = (stats['totalStores'] as num?)?.toInt() ?? 0;
         _totalDrivers = (stats['totalDrivers'] as num?)?.toInt() ?? 0;
         _totalCustomers = (stats['totalCustomers'] as num?)?.toInt() ?? 0;
@@ -104,17 +122,20 @@ class _MyDashboardState extends State<MyDashboard> {
         final List<dynamic>? topStoresList = stats['topStores'];
         if (topStoresList != null) {
           _topStores = topStoresList.map((e) => Map<String, dynamic>.from(e)).toList();
+        } else {
+          _topStores = [];
         }
 
         _recentOrders = recent.take(5).toList();
         _statusCount = counts;
+        _pendingWithdrawalsCount = pendingWithdrawals;
         _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Không thể kết nối API thống kê hệ thống: $e';
+        _errorMessage = 'Không thể kết nối API thống kê: $e';
       });
     }
   }
@@ -249,12 +270,12 @@ class _MyDashboardState extends State<MyDashboard> {
                         ),
                       ),
                       const SizedBox(width: 15),
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "Bảng Điều Khiển Hệ Thống",
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF1E1E2D),
@@ -262,7 +283,7 @@ class _MyDashboardState extends State<MyDashboard> {
                           ),
                           Text(
                             "Thống kê tổng quan hoạt động toàn sàn FoodGo",
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                            style: const TextStyle(fontSize: 13, color: Colors.grey),
                           ),
                         ],
                       ),
@@ -356,6 +377,9 @@ class _MyDashboardState extends State<MyDashboard> {
                       _periodOrders.toString(),
                       Icons.shopping_bag_outlined,
                       [const Color(0xFF2196F3), const Color(0xFF00BCD4)],
+                      onTap: () {
+                        if (widget.onNavigate != null) widget.onNavigate!('/orders');
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -365,6 +389,9 @@ class _MyDashboardState extends State<MyDashboard> {
                       _totalStores.toString(),
                       Icons.storefront_outlined,
                       [const Color(0xFFFF9800), const Color(0xFFFFC107)],
+                      onTap: () {
+                        if (widget.onNavigate != null) widget.onNavigate!('/stores');
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -374,6 +401,21 @@ class _MyDashboardState extends State<MyDashboard> {
                       _totalDrivers.toString(),
                       Icons.local_shipping_outlined,
                       [const Color(0xFF9C27B0), const Color(0xFFE91E63)],
+                      onTap: () {
+                        if (widget.onNavigate != null) widget.onNavigate!('/drivers');
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildStatCard(
+                      "Rút Tiền Chờ Duyệt",
+                      _pendingWithdrawalsCount.toString(),
+                      Icons.account_balance_wallet_outlined,
+                      [const Color(0xFFE53935), const Color(0xFFFF8A80)],
+                      onTap: () {
+                        if (widget.onNavigate != null) widget.onNavigate!('/finance/withdrawal');
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -383,6 +425,9 @@ class _MyDashboardState extends State<MyDashboard> {
                       _totalCustomers.toString(),
                       Icons.people_outline,
                       [const Color(0xFF607D8B), const Color(0xFF9E9E9E)],
+                      onTap: () {
+                        if (widget.onNavigate != null) widget.onNavigate!('/users');
+                      },
                     ),
                   ),
                 ],
@@ -558,9 +603,8 @@ class _MyDashboardState extends State<MyDashboard> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, List<Color> colors) {
+  Widget _buildStatCard(String title, String value, IconData icon, List<Color> colors, {VoidCallback? onTap}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(16),
@@ -568,33 +612,43 @@ class _MyDashboardState extends State<MyDashboard> {
           BoxShadow(color: colors[0].withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            right: -10,
-            bottom: -10,
-            child: Icon(icon, size: 54, color: Colors.white.withOpacity(0.15)),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 8),
-              FittedBox(
-                child: Text(
-                  value,
-                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 22),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  right: -10,
+                  bottom: -10,
+                  child: Icon(icon, size: 54, color: Colors.white.withOpacity(0.15)),
                 ),
-              ),
-            ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 8),
+                    FittedBox(
+                      child: Text(
+                        value,
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

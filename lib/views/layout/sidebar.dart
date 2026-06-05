@@ -153,6 +153,7 @@ class _SidebarState extends State<Sidebar> {
                 _section('NỘI DUNG'),
                 _item(Icons.category_outlined, 'Danh mục', '/menu-categories'),
                 _item(Icons.photo_library_outlined, 'Banners quảng cáo', '/banners'),
+                _item(Icons.notifications_active_outlined, 'Thông báo hệ thống', '/notifications'),
 
                 // KINH DOANH
                 _section('KINH DOANH'),
@@ -164,7 +165,7 @@ class _SidebarState extends State<Sidebar> {
                 // TÀI CHÍNH
                 _section('TÀI CHÍNH'),
                 _item(Icons.receipt_long_outlined, 'Lịch sử giao dịch', '/finance/transactions'),
-                _item(Icons.savings_outlined, 'Duyệt rút tiền', '/finance/withdrawal'),
+                _item(Icons.account_balance_wallet_outlined, 'Duyệt rút tiền', '/finance/withdrawal'),
 
                 // HỖ TRỢ
                 _section('HỖ TRỢ'),

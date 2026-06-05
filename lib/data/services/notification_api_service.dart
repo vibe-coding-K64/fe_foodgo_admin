@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 
 /// Notification API Service cho Admin Portal.
@@ -21,11 +22,19 @@ class NotificationApiService {
     return e.toString();
   }
 
-  /// Lấy danh sách thông báo (dùng endpoint của driver nhưng với token Admin)
+  /// Lấy endpoint prefix dựa trên role (Merchant có storeId, Admin thì không)
+  Future<String> _getEndpointPrefix() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storeId = prefs.getString('storeId');
+    return (storeId != null && storeId.isNotEmpty) ? '/merchants' : '/admins';
+  }
+
+  /// Lấy danh sách thông báo
   Future<List<Map<String, dynamic>>> getNotifications({int? type}) async {
     try {
+      final prefix = await _getEndpointPrefix();
       final response = await _dio.get(
-        '/drivers/notifications',
+        '$prefix/notifications',
         queryParameters: type != null ? {'type': type} : null,
       );
       if (response.statusCode == 200) {
@@ -37,15 +46,15 @@ class NotificationApiService {
       }
       return [];
     } catch (e) {
-      // Có thể admin không có thông báo driver - trả về rỗng
-      return [];
+      throw _handleError(e);
     }
   }
 
   /// Đánh dấu một thông báo đã đọc
   Future<void> markAsRead(String notificationId) async {
     try {
-      await _dio.put('/drivers/notifications/$notificationId/read');
+      final prefix = await _getEndpointPrefix();
+      await _dio.put('$prefix/notifications/$notificationId/read');
     } catch (e) {
       throw _handleError(e);
     }
@@ -54,7 +63,8 @@ class NotificationApiService {
   /// Đánh dấu tất cả đã đọc
   Future<void> markAllAsRead() async {
     try {
-      await _dio.put('/drivers/notifications/read-all');
+      final prefix = await _getEndpointPrefix();
+      await _dio.put('$prefix/notifications/read-all');
     } catch (e) {
       throw _handleError(e);
     }
@@ -63,9 +73,31 @@ class NotificationApiService {
   /// Xoá một thông báo
   Future<void> deleteNotification(String notificationId) async {
     try {
-      await _dio.delete('/drivers/notifications/$notificationId');
+      final prefix = await _getEndpointPrefix();
+      await _dio.delete('$prefix/notifications/$notificationId');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Gửi thông báo toàn sàn (chỉ dành cho admin)
+  Future<void> broadcastNotification({
+    required String title,
+    required String body,
+    required String target,
+  }) async {
+    try {
+      await _dio.post(
+        '/admins/notifications/broadcast',
+        data: {
+          'title': title,
+          'body': body,
+          'target': target,
+        },
+      );
     } catch (e) {
       throw _handleError(e);
     }
   }
 }
+

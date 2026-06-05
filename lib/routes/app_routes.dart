@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../views/auth/login_page.dart';
 import '../views/layout/admin_layout.dart';
 import '../views/dashboard/dashboard_page.dart';
+import '../views/store/store_detail_stats.dart';
 
 import '../views/orders/orders_page.dart';
 import '../views/orders/order_detail_page.dart';
@@ -21,6 +22,7 @@ import '../views/banners/banners_page.dart';
 import '../views/users/users_page.dart';
 import '../views/store/stores_admin_page.dart';
 import '../views/drivers/drivers_page.dart';
+import '../views/notifications/notifications_page.dart';
 
 class AppRouterDelegate extends RouterDelegate<String>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<String> {
@@ -36,13 +38,29 @@ class AppRouterDelegate extends RouterDelegate<String>
   @override
   Widget build(BuildContext context) {
     Widget page;
-    switch (_currentPath) {
+    final uri = Uri.parse(_currentPath);
+    switch (uri.path) {
       // 1. Hệ thống
       case "/dashboard":
-        page = const MyDashboard();
+        page = MyDashboard(
+          onNavigate: (path) {
+            _currentPath = path;
+            notifyListeners();
+          },
+        );
         break;
       case "/stores":
         page = StoresAdminPage(
+          onNavigate: (path) {
+            _currentPath = path;
+            notifyListeners();
+          },
+        );
+        break;
+      case "/store/stats":
+        page = StoreDetailStatsPage(
+          storeId: uri.queryParameters['id'] ?? '',
+          storeName: uri.queryParameters['name'] ?? 'Store',
           onNavigate: (path) {
             _currentPath = path;
             notifyListeners();
@@ -151,9 +169,22 @@ class AppRouterDelegate extends RouterDelegate<String>
           },
         );
         break;
+      case "/notifications":
+        page = NotificationsPage(
+          onNavigate: (path) {
+            _currentPath = path;
+            notifyListeners();
+          },
+        );
+        break;
 
       default:
-        page = const MyDashboard();
+        page = MyDashboard(
+          onNavigate: (path) {
+            _currentPath = path;
+            notifyListeners();
+          },
+        );
     }
 
     return StreamBuilder<User?>(

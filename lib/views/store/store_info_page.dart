@@ -103,6 +103,8 @@ class _StoreInfoPageState extends State<StoreInfoPage> {
 
     final bool isAcceptingOrders = _store!.isAcceptingOrders;
 
+    final bool isLocked = _store?.adminLockedReason != null;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,65 +145,110 @@ class _StoreInfoPageState extends State<StoreInfoPage> {
           ),
           const SizedBox(height: 24),
 
-            // Toggle nhận đơn khẩn cấp
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isAcceptingOrders
-                    ? const Color(0xFFE8F5E9)
-                    : const Color(0xFFFFEBEE),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isAcceptingOrders
-                      ? Colors.green.shade300
-                      : Colors.red.shade300,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    isAcceptingOrders
-                        ? Icons.store_outlined
-                        : Icons.store_mall_directory_outlined,
-                    color: isAcceptingOrders ? Colors.green : Colors.red,
-                    size: 32,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          // Toggle nhận đơn khẩn cấp / Thông báo tạm khóa
+          isLocked
+              ? Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.red.shade300,
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text(
-                        isAcceptingOrders
-                            ? 'Quán đang NHẬN ĐƠN'
-                            : 'Quán đang TẠM NGƯNG',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isAcceptingOrders
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
+                      Icon(
+                        Icons.lock_outline,
+                        color: Colors.red.shade700,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Quán đang bị TẠM KHÓA bởi Admin',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Lý do: ${_store!.adminLockedReason}',
+                              style: TextStyle(fontSize: 13, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
+                      const Switch(
+                        value: false,
+                        onChanged: null,
+                      ),
+                    ],
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: isAcceptingOrders
+                        ? const Color(0xFFE8F5E9)
+                        : const Color(0xFFFFEBEE),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isAcceptingOrders
+                          ? Colors.green.shade300
+                          : Colors.red.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
                         isAcceptingOrders
-                            ? 'Khách hàng có thể đặt món từ quán bạn'
-                            : 'Quán của bạn đang tắt nhận đơn',
-                        style:
-                            TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            ? Icons.store_outlined
+                            : Icons.store_mall_directory_outlined,
+                        color: isAcceptingOrders ? Colors.green : Colors.red,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isAcceptingOrders
+                                  ? 'Quán đang NHẬN ĐƠN'
+                                  : 'Quán đang TẠM NGƯNG',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isAcceptingOrders
+                                    ? Colors.green.shade700
+                                    : Colors.red.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isAcceptingOrders
+                                  ? 'Khách hàng có thể đặt món từ quán bạn'
+                                  : 'Quán của bạn đang tắt nhận đơn',
+                              style:
+                                  TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: isAcceptingOrders,
+                        onChanged: (val) => _toggleAcceptingOrders(val),
+                        activeColor: Colors.green,
                       ),
                     ],
                   ),
                 ),
-                Switch(
-                  value: isAcceptingOrders,
-                  onChanged: (val) => _toggleAcceptingOrders(val),
-                  activeColor: Colors.green,
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 24),
 
           // Cover image + info card

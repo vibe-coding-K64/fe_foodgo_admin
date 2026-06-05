@@ -17,6 +17,19 @@ class AdminTransactionApiService {
     return e.toString().replaceAll('Exception: ', '');
   }
 
+  Future<List<Map<String, dynamic>>> getAllTransactions() async {
+    try {
+      final response = await _dio.get('/admin/transactions');
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        List data = response.data['data'];
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getPendingWithdrawals() async {
     try {
       final response = await _dio.get('/admin/transactions/withdrawals/pending');
