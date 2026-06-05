@@ -173,23 +173,18 @@ class _VouchersPageState extends State<VouchersPage> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
-              image: v.imageUrl.isNotEmpty
-                  ? DecorationImage(image: NetworkImage(v.imageUrl), fit: BoxFit.cover)
-                  : null,
             ),
-            child: v.imageUrl.isNotEmpty
-                ? null
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        isPercent ? '${v.value.toInt()}%' : '${v.value ~/ 1000}K',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text('GIẢM', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  isPercent ? '${v.value.toInt()}%' : '${v.value ~/ 1000}K',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                const SizedBox(height: 4),
+                const Text('GIẢM', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              ],
+            ),
           ),
           const SizedBox(width: 20),
           // Info
