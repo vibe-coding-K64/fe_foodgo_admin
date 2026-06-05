@@ -36,7 +36,9 @@ class Voucher {
       limitCount: json['limitCount'] ?? 0,
       usedCount: json['usedCount'] ?? 0,
       expiryDate: json['expiryDate'] != null 
-          ? DateTime.tryParse(json['expiryDate']) ?? DateTime.now() 
+          ? (json['expiryDate'] is int 
+              ? DateTime.fromMillisecondsSinceEpoch(json['expiryDate']) 
+              : DateTime.tryParse(json['expiryDate'].toString()) ?? DateTime.now())
           : DateTime.now(),
       isActive: json['isActive'] ?? false,
     );
