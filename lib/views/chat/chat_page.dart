@@ -28,9 +28,33 @@ class _ChatPageState extends State<ChatPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Chat với Khách hàng', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-        const SizedBox(height: 4),
-        const Text('Nhắn tin trực tiếp với khách về đơn hàng', style: TextStyle(fontSize: 14, color: Colors.grey)),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                color: Color(0xFFFF6B35),
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 15),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Chat với khách hàng', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                  SizedBox(height: 4),
+                  Text('Nhắn tin trực tiếp với khách về đơn hàng', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                ],
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 20),
         Expanded(
           child: Row(

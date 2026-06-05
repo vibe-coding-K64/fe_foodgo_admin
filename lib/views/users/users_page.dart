@@ -110,21 +110,38 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(
-                  'Quản lý Người dùng & Phân quyền',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E1E2D),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.people_alt_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Giám sát tài khoản hệ thống, khóa/mở khóa các đối tác hoặc khách hàng vi phạm chính sách',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quản lý người dùng và phân quyền',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E2D),
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Giám sát tài khoản hệ thống, khóa/mở khóa các đối tác hoặc khách hàng vi phạm chính sách',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -667,42 +684,177 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text('Tạo tài khoản Admin mới'),
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B35).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFFF6B35)),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Tạo tài khoản Admin mới',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Color(0xFF1E1E2D),
+                    ),
+                  ),
+                ],
+              ),
               content: SingleChildScrollView(
                 child: SizedBox(
-                  width: 450,
+                  width: 500,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Text(
+                        'Đăng ký tài khoản quản trị viên mới và cấu hình cấp độ bộ phận cũng như quyền truy cập tính năng.',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Email *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: emailController,
-                        decoration: const InputDecoration(labelText: 'Email *'),
+                        decoration: InputDecoration(
+                          hintText: 'Nhập địa chỉ email...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                       ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Mật khẩu *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: passController,
                         obscureText: true,
-                        decoration: const InputDecoration(labelText: 'Mật khẩu *'),
+                        decoration: InputDecoration(
+                          hintText: 'Nhập mật khẩu...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                       ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Họ và Tên *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: nameController,
-                        decoration: const InputDecoration(labelText: 'Họ và Tên *'),
+                        decoration: InputDecoration(
+                          hintText: 'Nhập họ và tên...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                       ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Số Điện Thoại',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: phoneController,
-                        decoration: const InputDecoration(labelText: 'Số Điện Thoại'),
+                        decoration: InputDecoration(
+                          hintText: 'Nhập số điện thoại...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                       ),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Phòng ban',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
                         controller: deptController,
-                        decoration: const InputDecoration(labelText: 'Phòng ban'),
+                        decoration: InputDecoration(
+                          hintText: 'Nhập tên phòng ban (ví dụ: Management, Finance...)',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        'Cấp độ Admin',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       DropdownButtonFormField<int>(
                         value: adminLevel,
-                        decoration: const InputDecoration(labelText: 'Cấp độ Admin'),
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
+                        ),
                         items: const [
                           DropdownMenuItem(value: 1, child: Text('Cấp 1 - Staff')),
                           DropdownMenuItem(value: 2, child: Text('Cấp 2 - Supervisor')),
@@ -717,74 +869,101 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                           }
                         },
                       ),
-                      const SizedBox(height: 16),
-                      const Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text('Danh sách quyền hạn:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 20),
+                      
+                      const Text(
+                        'Danh sách quyền hạn',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
-                      CheckboxListTile(
-                        title: const Text('Quản lý người dùng (manage_users)'),
-                        value: hasPerm('manage_users'),
-                        onChanged: (val) {
-                          setStateDialog(() {
-                            if (val == true) {
-                              permissions.add('manage_users');
-                            } else {
-                              permissions.remove('manage_users');
-                            }
-                          });
-                        },
-                      ),
-                      CheckboxListTile(
-                        title: const Text('Phê duyệt cửa hàng (manage_stores)'),
-                        value: hasPerm('manage_stores'),
-                        onChanged: (val) {
-                          setStateDialog(() {
-                            if (val == true) {
-                              permissions.add('manage_stores');
-                            } else {
-                              permissions.remove('manage_stores');
-                            }
-                          });
-                        },
-                      ),
-                      CheckboxListTile(
-                        title: const Text('Xử lý đơn hàng (manage_orders)'),
-                        value: hasPerm('manage_orders'),
-                        onChanged: (val) {
-                          setStateDialog(() {
-                            if (val == true) {
-                              permissions.add('manage_orders');
-                            } else {
-                              permissions.remove('manage_orders');
-                            }
-                          });
-                        },
-                      ),
-                      CheckboxListTile(
-                        title: const Text('Xem báo cáo thống kê (view_reports)'),
-                        value: hasPerm('view_reports'),
-                        onChanged: (val) {
-                          setStateDialog(() {
-                            if (val == true) {
-                              permissions.add('view_reports');
-                            } else {
-                              permissions.remove('view_reports');
-                            }
-                          });
-                        },
+                      const SizedBox(height: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[200]!),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children: [
+                            CheckboxListTile(
+                              title: const Text('Quản lý người dùng (manage_users)', style: TextStyle(fontSize: 13)),
+                              activeColor: const Color(0xFFFF6B35),
+                              value: hasPerm('manage_users'),
+                              onChanged: (val) {
+                                setStateDialog(() {
+                                  if (val == true) {
+                                    permissions.add('manage_users');
+                                  } else {
+                                    permissions.remove('manage_users');
+                                  }
+                                });
+                              },
+                            ),
+                            const Divider(height: 1),
+                            CheckboxListTile(
+                              title: const Text('Phê duyệt cửa hàng (manage_stores)', style: TextStyle(fontSize: 13)),
+                              activeColor: const Color(0xFFFF6B35),
+                              value: hasPerm('manage_stores'),
+                              onChanged: (val) {
+                                setStateDialog(() {
+                                  if (val == true) {
+                                    permissions.add('manage_stores');
+                                  } else {
+                                    permissions.remove('manage_stores');
+                                  }
+                                });
+                              },
+                            ),
+                            const Divider(height: 1),
+                            CheckboxListTile(
+                              title: const Text('Xử lý đơn hàng (manage_orders)', style: TextStyle(fontSize: 13)),
+                              activeColor: const Color(0xFFFF6B35),
+                              value: hasPerm('manage_orders'),
+                              onChanged: (val) {
+                                setStateDialog(() {
+                                  if (val == true) {
+                                    permissions.add('manage_orders');
+                                  } else {
+                                    permissions.remove('manage_orders');
+                                  }
+                                });
+                              },
+                            ),
+                            const Divider(height: 1),
+                            CheckboxListTile(
+                              title: const Text('Xem báo cáo thống kê (view_reports)', style: TextStyle(fontSize: 13)),
+                              activeColor: const Color(0xFFFF6B35),
+                              value: hasPerm('view_reports'),
+                              onChanged: (val) {
+                                setStateDialog(() {
+                                  if (val == true) {
+                                    permissions.add('view_reports');
+                                  } else {
+                                    permissions.remove('view_reports');
+                                  }
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
+              actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Hủy'),
+                  child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B35)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF6B35),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
                   onPressed: () async {
                     if (emailController.text.isEmpty || passController.text.isEmpty || nameController.text.isEmpty) {
                       _showToast('Vui lòng điền đầy đủ các thông tin bắt buộc (*)', Colors.orange);
@@ -809,7 +988,7 @@ class _UsersPageState extends State<UsersPage> with SingleTickerProviderStateMix
                       _showToast('Lỗi tạo Admin: $e', Colors.red);
                     }
                   },
-                  child: const Text('Tạo', style: TextStyle(color: Colors.white)),
+                  child: const Text('Tạo'),
                 ),
               ],
             );

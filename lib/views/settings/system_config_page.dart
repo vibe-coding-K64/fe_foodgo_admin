@@ -140,17 +140,32 @@ class _SystemConfigPageState extends State<SystemConfigPage> {
         // Header
         Row(
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Cấu hình hệ thống',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                SizedBox(height: 4),
-                Text('Điều chỉnh phí, hoa hồng và cài đặt toàn hệ thống',
-                    style: TextStyle(fontSize: 14, color: Colors.grey)),
-              ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.settings_outlined,
+                color: Color(0xFFFF6B35),
+                size: 28,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 15),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Cấu hình hệ thống',
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                  SizedBox(height: 4),
+                  Text('Điều chỉnh phí, hoa hồng và cài đặt toàn hệ thống',
+                      style: TextStyle(fontSize: 14, color: Colors.grey)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
             IconButton(
               onPressed: _loadConfig,
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFFFF6B35)),

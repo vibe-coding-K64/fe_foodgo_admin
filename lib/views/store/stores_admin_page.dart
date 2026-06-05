@@ -324,12 +324,25 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           // Header
           Row(
             children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B35).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.storefront_outlined,
+                  color: Color(0xFFFF6B35),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 15),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'Quản lý Cửa hàng',
+                      'Quản lý cửa hàng',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,

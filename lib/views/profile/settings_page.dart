@@ -190,21 +190,38 @@ class _SettingsPageState extends State<SettingsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      'Cấu hình hệ thống',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E1E2D),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF6B35).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.settings_outlined,
+                        color: Color(0xFFFF6B35),
+                        size: 28,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Thiết lập các tham số, mức phí và chế độ hoạt động toàn sàn',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    const SizedBox(width: 15),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cấu hình hệ thống',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E1E2D),
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Thiết lập các tham số, mức phí và chế độ hoạt động toàn sàn',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   ],
                 ),

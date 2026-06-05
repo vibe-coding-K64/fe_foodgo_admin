@@ -81,12 +81,29 @@ class _TransactionPageState extends State<TransactionPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text('Lịch sử Giao dịch', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                SizedBox(height: 4),
-                Text('Sao kê chi tiết tất cả giao dịch trong ví', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Lịch sử giao dịch', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                    SizedBox(height: 4),
+                    Text('Sao kê chi tiết tất cả giao dịch trong ví', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
               ],
             ),
             IconButton(

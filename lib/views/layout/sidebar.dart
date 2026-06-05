@@ -137,39 +137,35 @@ class _SidebarState extends State<Sidebar> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               children: [
-                // HỆ THỐNG
-                _section('HỆ THỐNG'),
+                // Hệ thống
+                _section('Hệ thống'),
                 if (_hasPermission('/dashboard'))
                   _item(Icons.dashboard_outlined, 'Bảng điều khiển', '/dashboard'),
-                if (_hasPermission('/users'))
-                  _item(Icons.people_outline, 'Người dùng & Phân quyền', '/users'),
                 if (_hasPermission('/stores'))
                   _item(Icons.store_outlined, 'Cửa hàng', '/stores'),
-                if (_hasPermission('/drivers'))
-                  _item(Icons.two_wheeler_rounded, 'Tài xế', '/drivers'),
                 _item(Icons.settings_outlined, 'Cấu hình hệ thống', '/settings'),
 
-                // NỘI DUNG
-                _section('NỘI DUNG'),
+                // Nội dung
+                _section('Nội dung'),
                 _item(Icons.category_outlined, 'Danh mục', '/menu-categories'),
-                _item(Icons.photo_library_outlined, 'Banners quảng cáo', '/banners'),
+                _item(Icons.photo_library_outlined, 'Ảnh bìa quảng cáo', '/banners'),
                 _item(Icons.notifications_active_outlined, 'Thông báo hệ thống', '/notifications'),
 
-                // KINH DOANH
-                _section('KINH DOANH'),
+                // Kinh doanh
+                _section('Kinh doanh'),
                 if (_hasPermission('/orders'))
                   _item(Icons.shopping_bag_outlined, 'Đơn hàng toàn sàn', '/orders'),
                 _item(Icons.local_offer_outlined, 'Mã giảm giá', '/vouchers'),
                 _item(Icons.star_outline, 'Đánh giá', '/reviews'),
 
-                // TÀI CHÍNH
-                _section('TÀI CHÍNH'),
+                // Tài chính
+                _section('Tài chính'),
                 _item(Icons.receipt_long_outlined, 'Lịch sử giao dịch', '/finance/transactions'),
                 _item(Icons.account_balance_wallet_outlined, 'Duyệt rút tiền', '/finance/withdrawal'),
 
-                // HỖ TRỢ
-                _section('HỖ TRỢ'),
-                _item(Icons.chat_bubble_outline, 'Khiếu nại & Báo cáo', '/report-tickets'),
+                // Hỗ trợ
+                _section('Hỗ trợ'),
+                _item(Icons.chat_bubble_outline, 'Khiếu nại & báo cáo', '/report-tickets'),
               ],
             ),
           ),

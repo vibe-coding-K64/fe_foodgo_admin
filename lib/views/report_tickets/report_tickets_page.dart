@@ -62,7 +62,7 @@ class _ReportTicketsPageState extends State<ReportTicketsPage> {
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Text('Xử lý Khiếu nại #${id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            title: Text('Xử lý khiếu nại #${id.substring(0, 8)}', style: const TextStyle(fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,18 +160,32 @@ class _ReportTicketsPageState extends State<ReportTicketsPage> {
         // Header
         Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Khiếu nại từ Khách', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                const SizedBox(height: 4),
-                Text(
-                  '${_tickets.length} khiếu nại',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline,
+                color: Color(0xFFFF6B35),
+                size: 28,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Khiếu nại từ khách hàng', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_tickets.length} khiếu nại',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
             IconButton(
               onPressed: _loadTickets,
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFFFF6B35)),
@@ -404,7 +418,7 @@ class _ReportTicketsPageState extends State<ReportTicketsPage> {
               ElevatedButton.icon(
                 onPressed: () => _showProcessDialog(ticket),
                 icon: const Icon(Icons.edit_note, size: 18),
-                label: const Text('Phản hồi & Xử lý'),
+                label: const Text('Phản hồi & xử lý'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF6B35),
                   foregroundColor: Colors.white,

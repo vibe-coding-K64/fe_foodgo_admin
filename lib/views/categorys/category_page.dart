@@ -138,14 +138,31 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text('Danh mục Hệ thống',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                SizedBox(height: 4),
-                Text('Quản lý danh mục nhóm sản phẩm hiển thị trên trang chủ App khách hàng',
-                    style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.category_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Danh mục hệ thống',
+                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                    SizedBox(height: 4),
+                    Text('Quản lý danh mục nhóm sản phẩm hiển thị trên trang chủ App khách hàng',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
               ],
             ),
             ElevatedButton.icon(
@@ -311,24 +328,60 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Text(category == null ? 'Thêm danh mục' : 'Sửa danh mục', 
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.category_rounded, color: Color(0xFFFF6B35)),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  category == null ? 'Thêm danh mục mới' : 'Chỉnh sửa danh mục',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Color(0xFF1E1E2D),
+                  ),
+                ),
+              ],
+            ),
             content: SizedBox(
-              width: 400,
+              width: 450,
               child: Form(
                 key: formKey,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Text(
+                        'Cấu hình thông tin danh mục nhóm sản phẩm hiển thị trên trang chủ App khách hàng.',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Tên danh mục *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         initialValue: name,
+                        enabled: !isSaving,
                         decoration: InputDecoration(
-                          labelText: 'Tên danh mục (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          hintText: 'Nhập tên danh mục (ví dụ: Đồ ăn nhanh, Thức uống...)',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFFF6B35)),
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
                           ),
                         ),
                         validator: (v) {
@@ -339,15 +392,26 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                         onSaved: (v) => name = v!.trim(),
                       ),
                       const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Thứ tự ưu tiên *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
-                        initialValue: order.toString(),
+                        initialValue: order == 0 ? '' : order.toString(),
                         keyboardType: TextInputType.number,
+                        enabled: !isSaving,
                         decoration: InputDecoration(
-                          labelText: 'Thứ tự ưu tiên (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          hintText: 'Nhập thứ tự ưu tiên hiển thị (ví dụ: 1, 2...)',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFFF6B35)),
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
                           ),
                         ),
                         validator: (v) {
@@ -360,29 +424,38 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                         onSaved: (v) => order = int.tryParse(v ?? '0') ?? 0,
                       ),
                       const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Ảnh danh mục *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
                       const SizedBox(height: 8),
-                      ImagePickerWidget(
-                        initialImageUrl: imageUrl,
-                        folder: 'categories',
-                        label: 'Chọn ảnh danh mục (*)',
-                        width: 140,
-                        height: 140,
-                        onImageUploaded: (url) {
-                          setDialogState(() {
-                            imageUrl = url;
-                          });
-                        },
-                        onImageCleared: () {
-                          setDialogState(() {
-                            imageUrl = '';
-                          });
-                        },
+                      Center(
+                        child: ImagePickerWidget(
+                          initialImageUrl: imageUrl,
+                          folder: 'categories',
+                          label: 'Chọn ảnh danh mục (*)',
+                          width: 140,
+                          height: 140,
+                          onImageUploaded: (url) {
+                            setDialogState(() {
+                              imageUrl = url;
+                            });
+                          },
+                          onImageCleared: () {
+                            setDialogState(() {
+                              imageUrl = '';
+                            });
+                          },
+                        ),
                       ),
                       if (imageUrl.isEmpty) ...[
                         const SizedBox(height: 8),
-                        const Text(
-                          'Vui lòng chọn hoặc upload ảnh danh mục',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        const Center(
+                          child: Text(
+                            'Vui lòng chọn hoặc upload ảnh danh mục',
+                            style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                          ),
                         ),
                       ],
                     ],
@@ -390,11 +463,19 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                 ),
               ),
             ),
+            actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
             actions: [
               if (!isSaving)
-                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Hủy', style: TextStyle(color: Colors.grey))),
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+                ),
+              const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isSaving ? null : () async {
+                  if (imageUrl.isEmpty) {
+                    return;
+                  }
                   if (formKey.currentState!.validate()) {
                     formKey.currentState!.save();
                     
@@ -441,8 +522,9 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF6B35),
                   foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)
+                  elevation: 0,
                 ),
                 child: isSaving 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
