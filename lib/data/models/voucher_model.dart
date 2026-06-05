@@ -11,6 +11,13 @@ class Voucher {
   final int usedCount;
   final DateTime expiryDate;
   final bool isActive;
+  final String title;
+  final String subtitle;
+  final String imageUrl;
+  final int pointsRequired;
+  final int remaining;
+  final String terms;
+  final bool isFreeship;
 
   Voucher({
     this.id,
@@ -23,6 +30,13 @@ class Voucher {
     required this.usedCount,
     required this.expiryDate,
     required this.isActive,
+    this.title = '',
+    this.subtitle = '',
+    this.imageUrl = '',
+    this.pointsRequired = 0,
+    this.remaining = 0,
+    this.terms = '',
+    this.isFreeship = false,
   });
 
   factory Voucher.fromJson(Map<String, dynamic> json) {
@@ -32,13 +46,22 @@ class Voucher {
       code: json['code'] ?? '',
       type: json['type'] ?? 1,
       value: (json['value'] ?? 0).toDouble(),
-      minOrder: (json['minOrder'] ?? 0).toDouble(),
+      minOrder: (json['minOrder'] ?? json['minOrderValue'] ?? 0).toDouble(),
       limitCount: json['limitCount'] ?? 0,
       usedCount: json['usedCount'] ?? 0,
       expiryDate: json['expiryDate'] != null 
-          ? DateTime.tryParse(json['expiryDate']) ?? DateTime.now() 
+          ? (json['expiryDate'] is int 
+              ? DateTime.fromMillisecondsSinceEpoch(json['expiryDate']) 
+              : DateTime.tryParse(json['expiryDate'].toString()) ?? DateTime.now())
           : DateTime.now(),
       isActive: json['isActive'] ?? false,
+      title: json['title'] ?? '',
+      subtitle: json['subtitle'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      pointsRequired: json['pointsRequired'] ?? 0,
+      remaining: json['remaining'] ?? 0,
+      terms: json['terms'] ?? '',
+      isFreeship: json['isFreeship'] ?? false,
     );
   }
 
@@ -50,10 +73,18 @@ class Voucher {
       'type': type,
       'value': value,
       'minOrder': minOrder,
+      'minOrderValue': minOrder,
       'limitCount': limitCount,
       'usedCount': usedCount,
       'expiryDate': expiryDate.toIso8601String(),
       'isActive': isActive,
+      'title': title,
+      'subtitle': subtitle,
+      'imageUrl': imageUrl,
+      'pointsRequired': pointsRequired,
+      'remaining': remaining,
+      'terms': terms,
+      'isFreeship': isFreeship,
     };
   }
 
