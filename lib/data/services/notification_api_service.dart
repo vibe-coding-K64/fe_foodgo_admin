@@ -21,11 +21,11 @@ class NotificationApiService {
     return e.toString();
   }
 
-  /// Lấy danh sách thông báo (dùng endpoint của driver nhưng với token Admin)
+  /// Lấy danh sách thông báo
   Future<List<Map<String, dynamic>>> getNotifications({int? type}) async {
     try {
       final response = await _dio.get(
-        '/drivers/notifications',
+        '/admins/notifications',
         queryParameters: type != null ? {'type': type} : null,
       );
       if (response.statusCode == 200) {
@@ -37,7 +37,7 @@ class NotificationApiService {
       }
       return [];
     } catch (e) {
-      // Có thể admin không có thông báo driver - trả về rỗng
+      // Có thể admin không có thông báo - trả về rỗng
       return [];
     }
   }
@@ -45,7 +45,7 @@ class NotificationApiService {
   /// Đánh dấu một thông báo đã đọc
   Future<void> markAsRead(String notificationId) async {
     try {
-      await _dio.put('/drivers/notifications/$notificationId/read');
+      await _dio.put('/admins/notifications/$notificationId/read');
     } catch (e) {
       throw _handleError(e);
     }
@@ -54,7 +54,7 @@ class NotificationApiService {
   /// Đánh dấu tất cả đã đọc
   Future<void> markAllAsRead() async {
     try {
-      await _dio.put('/drivers/notifications/read-all');
+      await _dio.put('/admins/notifications/read-all');
     } catch (e) {
       throw _handleError(e);
     }
@@ -63,7 +63,7 @@ class NotificationApiService {
   /// Xoá một thông báo
   Future<void> deleteNotification(String notificationId) async {
     try {
-      await _dio.delete('/drivers/notifications/$notificationId');
+      await _dio.delete('/admins/notifications/$notificationId');
     } catch (e) {
       throw _handleError(e);
     }

@@ -21,6 +21,7 @@ import '../views/banners/banners_page.dart';
 import '../views/users/users_page.dart';
 import '../views/store/stores_admin_page.dart';
 import '../views/drivers/drivers_page.dart';
+import '../views/notifications/notifications_page.dart';
 
 class AppRouterDelegate extends RouterDelegate<String>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<String> {
@@ -145,6 +146,14 @@ class AppRouterDelegate extends RouterDelegate<String>
         break;
       case "/users":
         page = UsersPage(
+          onNavigate: (path) {
+            _currentPath = path;
+            notifyListeners();
+          },
+        );
+        break;
+      case "/notifications":
+        page = NotificationsPage(
           onNavigate: (path) {
             _currentPath = path;
             notifyListeners();

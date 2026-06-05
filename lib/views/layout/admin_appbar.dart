@@ -6,6 +6,7 @@ import '../../data/services/auth_service.dart';
 import '../../data/services/notification_api_service.dart';
 import '../../data/services/order_api_service.dart';
 import '../../data/services/api_constants.dart';
+import '../orders/order_detail_page.dart';
 
 class AdminAppBar extends StatefulWidget implements PreferredSizeWidget { 
   final Function(String)? onNavigate;
@@ -154,17 +155,9 @@ class _AdminAppBarState extends State<AdminAppBar> {
       if (!mounted) return;
 
       setState(() {
-        if (data.isEmpty) {
-          if (!_hasLoadedInitialNotifications || _notifications.isEmpty) {
-            _notifications = _getMockNotifications();
-            _hasLoadedInitialNotifications = true;
-            _savePersistedState();
-          }
-        } else {
-          _notifications = data;
-          _hasLoadedInitialNotifications = true;
-          _savePersistedState();
-        }
+        _notifications = data;
+        _hasLoadedInitialNotifications = true;
+        _savePersistedState();
         _isLoading = false;
       });
     } catch (e) {
@@ -451,6 +444,8 @@ class _AdminAppBarState extends State<AdminAppBar> {
                       },
                       notificationService: _notificationService,
                       onReload: () => _loadNotifications(silent: false),
+                      onNavigate: widget.onNavigate,
+                      orderApiService: _orderApiService,
                     ),
                   ),
                 ];
@@ -559,6 +554,8 @@ class _NotificationDropdownContent extends StatefulWidget {
   final Function(List<Map<String, dynamic>>) onNotificationsChanged;
   final NotificationApiService notificationService;
   final VoidCallback onReload;
+  final Function(String)? onNavigate;
+  final OrderApiService orderApiService;
 
   const _NotificationDropdownContent({
     required this.notifications,
@@ -566,6 +563,8 @@ class _NotificationDropdownContent extends StatefulWidget {
     required this.onNotificationsChanged,
     required this.notificationService,
     required this.onReload,
+    this.onNavigate,
+    required this.orderApiService,
   });
 
   @override
@@ -728,6 +727,30 @@ class _NotificationDropdownContentState extends State<_NotificationDropdownConte
             constraints: const BoxConstraints(maxHeight: 340),
             child: _buildBodyContent(),
           ),
+          const Divider(height: 1),
+          // View all footer
+          SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: TextButton(
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context); // Close dropdown popup
+                }
+                if (widget.onNavigate != null) {
+                  widget.onNavigate!('/notifications');
+                }
+              },
+              child: const Text(
+                'Xem tất cả thông báo',
+                style: TextStyle(
+                  color: Color(0xFFFF6B35),
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -795,7 +818,29 @@ class _NotificationDropdownContentState extends State<_NotificationDropdownConte
     return Material(
       color: isRead ? Colors.transparent : const Color(0xFFFFF9F6),
       child: InkWell(
-        onTap: () => _markAsRead(index),
+        onTap: () async {
+          await _markAsRead(index);
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context); // Close dropdown popup
+          }
+          final orderId = n['orderId'] as String? ?? '';
+          final type = typeStr;
+          if (orderId.isNotEmpty && widget.onNavigate != null) {
+            try {
+              final order = await widget.orderApiService.getOrderById(orderId);
+              if (order != null) {
+                OrderDetailPage.currentOrder = order;
+                widget.onNavigate!('/orders/detail');
+              }
+            } catch (e) {
+              debugPrint("Lỗi tải chi tiết đơn hàng: $e");
+            }
+          } else if ((type == '41' || type == 'payment') && widget.onNavigate != null) {
+            widget.onNavigate!('/finance/withdrawal');
+          } else if ((type == 'review' || type == '31') && widget.onNavigate != null) {
+            widget.onNavigate!('/reviews');
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
@@ -889,11 +934,14 @@ class _NotificationDropdownContentState extends State<_NotificationDropdownConte
     switch (type) {
       case 'order':
       case '11':
+      case '1':
         return Icons.shopping_bag_outlined;
       case 'payment':
       case '12':
+      case '41':
         return Icons.account_balance_wallet_outlined;
       case 'review':
+      case '31':
         return Icons.star_outline;
       case 'cancel':
       case '13':
@@ -909,11 +957,14 @@ class _NotificationDropdownContentState extends State<_NotificationDropdownConte
     switch (type) {
       case 'order':
       case '11':
+      case '1':
         return const Color(0xFFFF6B35);
       case 'payment':
       case '12':
+      case '41':
         return Colors.green;
       case 'review':
+      case '31':
         return Colors.amber;
       case 'cancel':
       case '13':
