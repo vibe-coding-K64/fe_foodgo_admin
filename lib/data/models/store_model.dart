@@ -14,6 +14,7 @@ class Store {
   final int? reviewCount;
   final String approvalStatus; // "pending" | "approved" | "rejected"
   final String? rejectReason;
+  final String? adminLockedReason;
 
   Store({
     this.id,
@@ -31,6 +32,7 @@ class Store {
     this.reviewCount,
     this.approvalStatus = 'approved',
     this.rejectReason,
+    this.adminLockedReason,
   });
 
   factory Store.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,7 @@ class Store {
       reviewCount: (json['reviewCount'] as num?)?.toInt(),
       approvalStatus: json['approvalStatus'] ?? 'approved',
       rejectReason: json['rejectReason'],
+      adminLockedReason: json['adminLockedReason'],
     );
   }
 
@@ -73,6 +76,7 @@ class Store {
       'reviewCount': reviewCount,
       'approvalStatus': approvalStatus,
       'rejectReason': rejectReason,
+      'adminLockedReason': adminLockedReason,
     };
   }
 }

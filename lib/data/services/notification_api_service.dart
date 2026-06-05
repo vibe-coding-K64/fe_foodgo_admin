@@ -37,8 +37,7 @@ class NotificationApiService {
       }
       return [];
     } catch (e) {
-      // Có thể admin không có thông báo - trả về rỗng
-      return [];
+      throw _handleError(e);
     }
   }
 
