@@ -173,18 +173,23 @@ class _VouchersPageState extends State<VouchersPage> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(14),
+              image: v.imageUrl.isNotEmpty
+                  ? DecorationImage(image: NetworkImage(v.imageUrl), fit: BoxFit.cover)
+                  : null,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  isPercent ? '${v.value.toInt()}%' : '${v.value ~/ 1000}K',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                const SizedBox(height: 4),
-                const Text('GIẢM', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-              ],
-            ),
+            child: v.imageUrl.isNotEmpty
+                ? null
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        isPercent ? '${v.value.toInt()}%' : '${v.value ~/ 1000}K',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text('GIẢM', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
           ),
           const SizedBox(width: 20),
           // Info
@@ -211,12 +216,60 @@ class _VouchersPageState extends State<VouchersPage> {
                             fontWeight: FontWeight.bold),
                       ),
                     ),
+                    if (v.isFreeship) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Freeship',
+                          style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                    if (v.pointsRequired > 0) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'Đổi ${v.pointsRequired} điểm',
+                          style: const TextStyle(
+                              color: Color(0xFFFF6B35),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 6),
+                if (v.title.isNotEmpty) ...[
+                  Text(
+                    v.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D), fontSize: 14),
+                  ),
+                  const SizedBox(height: 2),
+                ],
+                if (v.subtitle.isNotEmpty) ...[
+                  Text(
+                    v.subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                ],
                 Text(
-                  '${v.discountText} | ${v.minOrderText}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                  'Chi tiết: ${v.discountText} | ${v.minOrderText}',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12, fontStyle: FontStyle.italic),
                 ),
                 Text('HSD: ${v.expiryDateFormatted}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
                 const SizedBox(height: 10),
