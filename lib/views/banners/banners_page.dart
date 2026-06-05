@@ -38,7 +38,7 @@ class _BannersPageState extends State<BannersPage> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Lỗi tải danh sách banner: $e';
+        _errorMessage = 'Lỗi tải danh sách ảnh quảng cáo: $e';
       });
     }
   }
@@ -58,13 +58,13 @@ class _BannersPageState extends State<BannersPage> {
       final success = await _apiService.updateBanner(banner.id!, updated);
       if (success) {
         _showToast(
-          updated.isActive ? 'Đã kích hoạt banner!' : 'Đã ẩn banner!',
+          updated.isActive ? 'Đã kích hoạt ảnh quảng cáo!' : 'Đã ẩn ảnh quảng cáo!',
           Colors.green,
         );
         _fetchBanners();
       }
     } catch (e) {
-      _showToast('Lỗi cập nhật banner: $e', Colors.red);
+      _showToast('Lỗi cập nhật ảnh quảng cáo: $e', Colors.red);
     }
   }
 
@@ -93,28 +93,45 @@ class _BannersPageState extends State<BannersPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(
-                  'Quản lý Banner quảng cáo',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E1E2D),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.photo_library_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Cấu hình ảnh quảng cáo chạy trên Carousel trang chủ App khách hàng',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quản lý ảnh bìa quảng cáo',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E1E2D),
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Cấu hình ảnh quảng cáo chạy trên Carousel trang chủ App khách hàng',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),
             ElevatedButton.icon(
               onPressed: () => _showBannerDialog(context),
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Thêm Banner mới'),
+              label: const Text('Thêm ảnh quảng cáo mới'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6B35),
                 foregroundColor: Colors.white,
@@ -171,12 +188,12 @@ class _BannersPageState extends State<BannersPage> {
             Icon(Icons.photo_library_outlined, size: 72, color: Colors.grey),
             SizedBox(height: 16),
             Text(
-              'Chưa có Banner quảng cáo nào!',
+              'Chưa có ảnh quảng cáo nào!',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 6),
             Text(
-              'Bấm "Thêm Banner mới" ở trên để đưa ảnh chiến dịch quảng cáo lên sàn.',
+              'Bấm "Thêm ảnh quảng cáo mới" ở trên để đưa ảnh chiến dịch quảng cáo lên sàn.',
               style: TextStyle(color: Colors.grey, fontSize: 13),
             ),
           ],
@@ -265,7 +282,7 @@ class _BannersPageState extends State<BannersPage> {
                     Text(
                       banner.storeName != null
                           ? 'Liên kết quán: ${banner.storeName}'
-                          : 'Banner chiến dịch chung',
+                          : 'Chiến dịch quảng cáo chung',
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                     const SizedBox(height: 12),
@@ -335,23 +352,61 @@ class _BannersPageState extends State<BannersPage> {
             backgroundColor: Colors.white,
             surfaceTintColor: Colors.transparent,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Text(
-              banner == null ? 'Thêm Banner mới' : 'Chỉnh sửa Banner',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: Color(0xFFFF6B35)),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  banner == null ? 'Thêm ảnh quảng cáo mới' : 'Chỉnh sửa ảnh quảng cáo',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: Color(0xFF1E1E2D),
+                  ),
+                ),
+              ],
             ),
             content: SizedBox(
-              width: 450,
+              width: 480,
               child: Form(
                 key: formKey,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const Text(
+                        'Cấu hình thông tin ảnh quảng cáo chạy trên Carousel trang chủ App khách hàng.',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Tiêu đề quảng cáo *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         initialValue: title,
+                        enabled: !isSaving,
                         decoration: InputDecoration(
-                          labelText: 'Tiêu đề quảng cáo (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          hintText: 'Nhập tiêu đề quảng cáo...',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Tiêu đề không được để trống';
@@ -359,64 +414,128 @@ class _BannersPageState extends State<BannersPage> {
                         },
                         onSaved: (v) => title = v!.trim(),
                       ),
+                      const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Ảnh Banner *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
                       const SizedBox(height: 8),
-                      ImagePickerWidget(
-                        initialImageUrl: imageUrl,
-                        folder: 'banners',
-                        label: 'Chọn ảnh Banner (*)',
-                        width: 320,
-                        height: 160,
-                        onImageUploaded: (url) {
-                          setDialogState(() {
-                            imageUrl = url;
-                          });
-                        },
-                        onImageCleared: () {
-                          setDialogState(() {
-                            imageUrl = '';
-                          });
-                        },
+                      Center(
+                        child: ImagePickerWidget(
+                          initialImageUrl: imageUrl,
+                          folder: 'banners',
+                          label: 'Chọn ảnh Banner (*)',
+                          width: 320,
+                          height: 160,
+                          onImageUploaded: (url) {
+                            setDialogState(() {
+                              imageUrl = url;
+                            });
+                          },
+                          onImageCleared: () {
+                            setDialogState(() {
+                              imageUrl = '';
+                            });
+                          },
+                        ),
                       ),
                       if (imageUrl.isEmpty) ...[
                         const SizedBox(height: 8),
-                        const Text(
-                          'Vui lòng chọn hoặc upload ảnh banner',
-                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        const Center(
+                          child: Text(
+                            'Vui lòng chọn hoặc tải lên ảnh quảng cáo',
+                            style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                          ),
                         ),
                       ],
                       const SizedBox(height: 16),
+                      
                       Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              initialValue: storeId,
-                              decoration: InputDecoration(
-                                labelText: 'Mã quán ăn liên kết (Tùy chọn)',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              onSaved: (v) => storeId = (v != null && v.trim().isNotEmpty) ? v.trim() : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Mã quán ăn (Tùy chọn)',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  initialValue: storeId,
+                                  enabled: !isSaving,
+                                  decoration: InputDecoration(
+                                    hintText: 'Mã quán ăn liên kết...',
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                                    ),
+                                  ),
+                                  onSaved: (v) => storeId = (v != null && v.trim().isNotEmpty) ? v.trim() : null,
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: TextFormField(
-                              initialValue: storeName,
-                              decoration: InputDecoration(
-                                labelText: 'Tên quán ăn liên kết (Tùy chọn)',
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                              ),
-                              onSaved: (v) => storeName = (v != null && v.trim().isNotEmpty) ? v.trim() : null,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Tên quán ăn (Tùy chọn)',
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                                const SizedBox(height: 8),
+                                TextFormField(
+                                  initialValue: storeName,
+                                  enabled: !isSaving,
+                                  decoration: InputDecoration(
+                                    hintText: 'Tên quán ăn liên kết...',
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(color: Colors.grey[300]!),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                                    ),
+                                  ),
+                                  onSaved: (v) => storeName = (v != null && v.trim().isNotEmpty) ? v.trim() : null,
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
+                      
+                      const Text(
+                        'Thứ tự hiển thị *',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      const SizedBox(height: 8),
                       TextFormField(
                         initialValue: order.toString(),
                         keyboardType: TextInputType.number,
+                        enabled: !isSaving,
                         decoration: InputDecoration(
-                          labelText: 'Thứ tự hiển thị (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          hintText: 'Nhập vị trí ưu tiên (ví dụ: 0, 1, 2...)',
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                          ),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Vui lòng nhập thứ tự hiển thị';
@@ -430,16 +549,21 @@ class _BannersPageState extends State<BannersPage> {
                 ),
               ),
             ),
+            actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
             actions: [
               if (!isSaving)
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
                 ),
+              const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: isSaving
                     ? null
                     : () async {
+                        if (imageUrl.isEmpty) {
+                          return;
+                        }
                         if (formKey.currentState!.validate()) {
                           formKey.currentState!.save();
 
@@ -460,26 +584,28 @@ class _BannersPageState extends State<BannersPage> {
                               await _apiService.createBanner(newBanner);
                               if (mounted) {
                                 Navigator.pop(dialogContext);
-                                _showToast('Thêm banner thành công!', Colors.green);
+                                _showToast('Thêm ảnh quảng cáo thành công!', Colors.green);
                               }
                             } else {
                               await _apiService.updateBanner(banner.id!, newBanner);
                               if (mounted) {
                                 Navigator.pop(dialogContext);
-                                _showToast('Đã lưu thay đổi banner!', Colors.green);
+                                _showToast('Đã lưu thay đổi ảnh quảng cáo!', Colors.green);
                               }
                             }
                             _fetchBanners();
                           } catch (e) {
                             setDialogState(() => isSaving = false);
-                            _showToast('Lỗi khi lưu banner: $e', Colors.red);
+                            _showToast('Lỗi khi lưu ảnh quảng cáo: $e', Colors.red);
                           }
                         }
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF6B35),
                   foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
                 ),
                 child: isSaving
                     ? const SizedBox(
@@ -500,8 +626,8 @@ class _BannersPageState extends State<BannersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận xóa Banner'),
-        content: Text('Bạn có chắc chắn muốn xóa banner quảng cáo "${banner.title}"?'),
+        title: const Text('Xác nhận xóa ảnh quảng cáo'),
+        content: Text('Bạn có chắc chắn muốn xóa ảnh quảng cáo "${banner.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -517,14 +643,14 @@ class _BannersPageState extends State<BannersPage> {
               try {
                 final success = await _apiService.deleteBanner(banner.id!);
                 if (success) {
-                  _showToast('Đã xóa banner!', Colors.redAccent);
+                  _showToast('Đã xóa ảnh quảng cáo!', Colors.redAccent);
                   _fetchBanners();
                 }
               } catch (e) {
                 setState(() {
                   _isLoading = false;
                 });
-                _showToast('Không thể xóa banner: $e', Colors.red);
+                _showToast('Không thể xóa ảnh quảng cáo: $e', Colors.red);
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),

@@ -169,21 +169,38 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    'Duyệt rút tiền',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E1E2D),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B35).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_outlined,
+                      color: Color(0xFFFF6B35),
+                      size: 28,
                     ),
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Xem và phê duyệt các yêu cầu thanh toán từ đối tác Merchant & Driver',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  const SizedBox(width: 15),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Duyệt rút tiền',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E1E2D),
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Xem và phê duyệt các yêu cầu thanh toán từ đối tác Merchant & Driver',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -346,23 +363,23 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                 children: const [
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Text('MÃ GD / NGÀY TẠO', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                    child: Text('Mã GD / Ngày tạo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Text('ĐỐI TÁC / VAI TRÒ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                    child: Text('Đối tác / Vai trò', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Text('TÀI KHOẢN THỤ HƯỞNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                    child: Text('Tài khoản thụ hưởng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Text('SỐ TIỀN RÚT', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                    child: Text('Số tiền rút', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    child: Text('HÀNH ĐỘNG', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
+                    child: Text('Hành động', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
                   ),
                 ],
               ),

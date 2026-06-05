@@ -90,17 +90,34 @@ class _ReviewsPageState extends State<ReviewsPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text(
-                  'Giám sát & Kiểm duyệt Đánh giá',
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.star_outline,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
+                  ),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  'Xem và kiểm soát toàn bộ bình luận đánh giá trong hệ thống. Xóa các bình luận vi phạm chính sách của sàn.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Giám sát và kiểm duyệt đánh giá',
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D)),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Xem và kiểm soát toàn bộ bình luận đánh giá trong hệ thống. Xóa các bình luận vi phạm chính sách của sàn.',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),

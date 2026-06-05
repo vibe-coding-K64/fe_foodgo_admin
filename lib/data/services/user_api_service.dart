@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'api_client.dart';
 
 class UserApiService {
   final Dio _dio = ApiClient().dio;
+  
+  static final ValueNotifier<Map<String, dynamic>?> profileNotifier = ValueNotifier<Map<String, dynamic>?>(null);
 
   String _handleError(dynamic e) {
     if (e is DioException) {
@@ -119,6 +122,78 @@ class UserApiService {
       );
       if (response.statusCode != 200) {
         throw Exception('Lỗi cập nhật phân quyền admin');
+      }
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> getCurrentProfile() async {
+    try {
+      final response = await _dio.get('/customers/profile');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data is Map && data.containsKey('data')) {
+          final profileData = Map<String, dynamic>.from(data['data']);
+          profileNotifier.value = profileData;
+          return profileData;
+        }
+      }
+      throw Exception('Không thể tải hồ sơ cá nhân');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Map<String, dynamic>> updateCurrentProfile({
+    String? password,
+    String? fullName,
+    String? email,
+    List<int>? avatarBytes,
+    String? avatarName,
+  }) async {
+    try {
+      final Map<String, dynamic> map = {};
+      if (password != null) map['password'] = password;
+      if (fullName != null) map['fullName'] = fullName;
+      if (email != null) map['email'] = email;
+      if (avatarBytes != null && avatarName != null) {
+        map['avatar'] = MultipartFile.fromBytes(avatarBytes, filename: avatarName);
+      }
+
+      final response = await _dio.put(
+        '/customers/profile',
+        data: FormData.fromMap(map),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data;
+        if (data is Map && data.containsKey('data')) {
+          final profileData = Map<String, dynamic>.from(data['data']);
+          profileNotifier.value = profileData;
+          return profileData;
+        }
+      }
+      throw Exception('Không thể cập nhật hồ sơ');
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> changeCurrentPassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/customers/password',
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+        },
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Lỗi đổi mật khẩu');
       }
     } catch (e) {
       throw _handleError(e);

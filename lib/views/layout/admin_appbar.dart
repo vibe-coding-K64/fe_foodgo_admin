@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/services/auth_service.dart';
 import '../../data/services/notification_api_service.dart';
 import '../../data/services/order_api_service.dart';
+import '../../data/services/user_api_service.dart';
 import '../../data/services/api_constants.dart';
 import '../orders/order_detail_page.dart';
 
@@ -43,11 +44,29 @@ class _AdminAppBarState extends State<AdminAppBar> {
     await _loadPersistedState();
     _loadNotifications();
     _monitorOrders(firstLoad: !_hasLoadedInitialOrders);
+
+    // Tải thông tin cá nhân của admin nếu chưa có sẵn
+    if (UserApiService.profileNotifier.value == null) {
+      UserApiService().getCurrentProfile().catchError((_) => <String, dynamic>{});
+    }
+
     // Bắt đầu tự động làm mới mỗi 15 giây để tối ưu trải nghiệm thời gian thực
     _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) {
       _loadNotifications(silent: true);
       _monitorOrders(firstLoad: !_hasLoadedInitialOrders);
     });
+  }
+
+  String _getInitials(String? fullName) {
+    if (fullName == null || fullName.trim().isEmpty) return "UA";
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    if (parts.length == 1) {
+      return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
+    }
+    final first = parts[0].isNotEmpty ? parts[0][0] : '';
+    final last = parts[parts.length - 1].isNotEmpty ? parts[parts.length - 1][0] : '';
+    final initials = '$first$last';
+    return initials.isNotEmpty ? initials.toUpperCase() : "UA";
   }
 
   Future<void> _loadPersistedState() async {
@@ -467,41 +486,64 @@ class _AdminAppBarState extends State<AdminAppBar> {
             ), 
             child: MouseRegion( 
               cursor: SystemMouseCursors.click, 
-              child: Row( 
-                children: [ 
-                  Column( 
-                    crossAxisAlignment: CrossAxisAlignment.end, 
-                    mainAxisAlignment: MainAxisAlignment.center, 
-                    children: const [ 
-                      Text( 
-                        "Quản trị viên", 
-                        style: TextStyle( 
-                          fontSize: 11, 
-                          color: Color(0xFFFF6B35), 
+              child: ValueListenableBuilder<Map<String, dynamic>?>(
+                valueListenable: UserApiService.profileNotifier,
+                builder: (context, profile, _) {
+                  final fullName = profile?['fullName'] as String?;
+                  final photoUrl = profile?['photoUrl'] as String?;
+                  
+                  final initials = _getInitials(fullName);
+                  final displayName = (fullName != null && fullName.trim().isNotEmpty)
+                      ? fullName
+                      : "Quản trị viên";
+
+                  return Row( 
+                    children: [ 
+                      Column( 
+                        crossAxisAlignment: CrossAxisAlignment.end, 
+                        mainAxisAlignment: MainAxisAlignment.center, 
+                        children: [ 
+                          Text( 
+                            displayName, 
+                            style: const TextStyle( 
+                              fontSize: 11, 
+                              color: Color(0xFFFF6B35), 
+                              fontWeight: FontWeight.bold,
+                            ), 
+                          ), 
+                        ], 
+                      ), 
+                      const SizedBox(width: 12), 
+                      Container( 
+                        decoration: BoxDecoration( 
+                          shape: BoxShape.circle, 
+                          border: Border.all( 
+                            color: const Color(0xFFFF6B35).withOpacity(0.2), 
+                            width: 2, 
+                          ), 
+                        ), 
+                        child: CircleAvatar( 
+                          radius: 18, 
+                          backgroundColor: const Color(0xFFFF6B35), 
+                          backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                              ? NetworkImage(photoUrl)
+                              : null,
+                          child: (photoUrl == null || photoUrl.isEmpty)
+                              ? Text( 
+                                  initials, 
+                                  style: const TextStyle(
+                                    color: Colors.white, 
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ), 
+                                )
+                              : null,
                         ), 
                       ), 
+                      const Icon(Icons.arrow_drop_down, color: Colors.grey),
                     ], 
-                  ), 
-                  const SizedBox(width: 12), 
-                  Container( 
-                    decoration: BoxDecoration( 
-                      shape: BoxShape.circle, 
-                      border: Border.all( 
-                        color: const Color(0xFFFF6B35).withOpacity(0.2), 
-                        width: 2, 
-                      ), 
-                    ), 
-                    child: const CircleAvatar( 
-                      radius: 18, 
-                      backgroundColor: Color(0xFFFF6B35), 
-                      child: Text( 
-                        "UA", 
-                        style: TextStyle(color: Colors.white, fontSize: 12), 
-                      ), 
-                    ), 
-                  ), 
-                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
-                ], 
+                  );
+                },
               ), 
             ), 
             itemBuilder: (context) => [ 
@@ -522,7 +564,11 @@ class _AdminAppBarState extends State<AdminAppBar> {
             onSelected: (value) async { 
               if (value == "logout") { 
                 await AuthService().logout();
-              } 
+              } else if (value == "profile" || value == "settings") {
+                if (widget.onNavigate != null) {
+                  widget.onNavigate!('/profile');
+                }
+              }
             }, 
           ), 
         ], 

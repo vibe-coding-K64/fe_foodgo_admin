@@ -127,17 +127,32 @@ class _OrdersPageState extends State<OrdersPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Quản lý Đơn hàng Toàn sàn',
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                  SizedBox(height: 4),
-                  Text('Giám sát và can thiệp trạng thái toàn bộ đơn hàng phát sinh trên nền tảng FoodGo',
-                      style: TextStyle(fontSize: 14, color: Colors.grey)),
-                ],
-              ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_bag_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Quản lý đơn hàng toàn sàn',
+                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                    SizedBox(height: 4),
+                    Text('Giám sát và can thiệp trạng thái toàn bộ đơn hàng phát sinh trên nền tảng FoodGo',
+                        style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
+              ],
             ),
             IconButton(
               icon: const Icon(Icons.refresh, color: Color(0xFFFF6B35)),

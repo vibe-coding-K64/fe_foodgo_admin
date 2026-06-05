@@ -90,12 +90,29 @@ class _VouchersPageState extends State<VouchersPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text('Danh sách Ưu đãi & Vouchers', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                SizedBox(height: 4),
-                Text('Tạo và quản lý các chương trình ưu đãi, mã giảm giá khuyến mãi toàn sàn', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.local_offer_outlined,
+                    color: Color(0xFFFF6B35),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 15),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Danh sách ưu đãi và mã giảm giá', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                    SizedBox(height: 4),
+                    Text('Tạo và quản lý các chương trình ưu đãi, mã giảm giá khuyến mãi toàn sàn', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
               ],
             ),
             ElevatedButton.icon(

@@ -120,17 +120,31 @@ class _DriversPageState extends State<DriversPage> {
         // Header
         Row(
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Quản lý Tài Xế',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-                const SizedBox(height: 4),
-                Text('${_drivers.length} tài xế trong hệ thống',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey)),
-              ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.delivery_dining_outlined,
+                color: Color(0xFFFF6B35),
+                size: 28,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Quản lý tài xế',
+                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                  const SizedBox(height: 4),
+                  Text('${_drivers.length} tài xế trong hệ thống',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                ],
+              ),
+            ),
             IconButton(
               onPressed: _loadDrivers,
               icon: const Icon(Icons.refresh_rounded, color: Color(0xFFFF6B35)),

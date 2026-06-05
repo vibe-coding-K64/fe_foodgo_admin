@@ -10,9 +10,33 @@ class WalletPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Ví Doanh Thu', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
-          const SizedBox(height: 4),
-          const Text('Quản lý số dư và theo dõi dòng tiền', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF6B35).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: Color(0xFFFF6B35),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 15),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Ví doanh thu', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF1E1E2D))),
+                    SizedBox(height: 4),
+                    Text('Quản lý số dư và theo dõi dòng tiền', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 24),
           // Balance card
           Container(

@@ -274,7 +274,7 @@ class _MyDashboardState extends State<MyDashboard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Bảng Điều Khiển Hệ Thống",
+                            "Bảng điều khiển hệ thống",
                             style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.w800,
@@ -385,7 +385,7 @@ class _MyDashboardState extends State<MyDashboard> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatCard(
-                      "Cửa Hàng Hoạt Động",
+                      "Cửa hàng hoạt động",
                       _totalStores.toString(),
                       Icons.storefront_outlined,
                       [const Color(0xFFFF9800), const Color(0xFFFFC107)],
@@ -397,36 +397,12 @@ class _MyDashboardState extends State<MyDashboard> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildStatCard(
-                      "Tài Xế Hệ Thống",
-                      _totalDrivers.toString(),
-                      Icons.local_shipping_outlined,
-                      [const Color(0xFF9C27B0), const Color(0xFFE91E63)],
-                      onTap: () {
-                        if (widget.onNavigate != null) widget.onNavigate!('/drivers');
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      "Rút Tiền Chờ Duyệt",
+                      "Rút tiền chờ duyệt",
                       _pendingWithdrawalsCount.toString(),
                       Icons.account_balance_wallet_outlined,
                       [const Color(0xFFE53935), const Color(0xFFFF8A80)],
                       onTap: () {
                         if (widget.onNavigate != null) widget.onNavigate!('/finance/withdrawal');
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      "Khách Hàng Đăng Ký",
-                      _totalCustomers.toString(),
-                      Icons.people_outline,
-                      [const Color(0xFF607D8B), const Color(0xFF9E9E9E)],
-                      onTap: () {
-                        if (widget.onNavigate != null) widget.onNavigate!('/users');
                       },
                     ),
                   ),
@@ -444,7 +420,7 @@ class _MyDashboardState extends State<MyDashboard> {
                     child: Column(
                       children: [
                         _buildCardContainer(
-                          title: _selectedPeriod == 'today' ? "Phân Tích Doanh Thu Hôm Nay" : (_selectedPeriod == 'week' ? "Phân Tích Doanh Thu Tuần Này" : (_selectedPeriod == 'month' ? "Phân Tích Doanh Thu Tháng Này" : "Phân Tích Doanh Thu Kỳ Chọn")),
+                          title: _selectedPeriod == 'today' ? "Phân tích doanh thu hôm nay" : (_selectedPeriod == 'week' ? "Phân tích doanh thu tuần này" : (_selectedPeriod == 'month' ? "Phân tích doanh thu tháng này" : "Phân tích doanh thu kỳ chọn")),
                           child: SizedBox(
                             height: 300,
                             child: LineChart(_mainLineData()),
@@ -454,7 +430,7 @@ class _MyDashboardState extends State<MyDashboard> {
                         // Top Stores BarChart
                         if (_topStores.isNotEmpty)
                           _buildCardContainer(
-                            title: "Top 5 Cửa Hàng Bán Chạy",
+                            title: "Top 5 cửa hàng bán chạy",
                             child: SizedBox(
                               height: 220,
                               child: BarChart(
@@ -526,7 +502,7 @@ class _MyDashboardState extends State<MyDashboard> {
                         const SizedBox(height: 24),
                         // Recent Orders
                         _buildCardContainer(
-                          title: "Đơn Hàng Mới Nhất",
+                          title: "Đơn hàng mới nhất",
                           child: SizedBox(
                             width: double.infinity,
                             child: _recentOrders.isEmpty
@@ -539,11 +515,11 @@ class _MyDashboardState extends State<MyDashboard> {
                                     horizontalMargin: 10,
                                     columnSpacing: 20,
                                     columns: const [
-                                      DataColumn(label: Text("Mã Đơn", style: TextStyle(fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text("Khách Hàng", style: TextStyle(fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text("Hình Thức", style: TextStyle(fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text("Trạng Thái", style: TextStyle(fontWeight: FontWeight.bold))),
-                                      DataColumn(label: Text("Thanh Toán", style: TextStyle(fontWeight: FontWeight.bold))),
+                                      DataColumn(label: Text("Mã đơn", style: TextStyle(fontWeight: FontWeight.bold))),
+                                      DataColumn(label: Text("Khách hàng", style: TextStyle(fontWeight: FontWeight.bold))),
+                                      DataColumn(label: Text("Hình thức", style: TextStyle(fontWeight: FontWeight.bold))),
+                                      DataColumn(label: Text("Trạng thái", style: TextStyle(fontWeight: FontWeight.bold))),
+                                      DataColumn(label: Text("Thanh toán", style: TextStyle(fontWeight: FontWeight.bold))),
                                     ],
                                     rows: _recentOrders.map((o) {
                                       return DataRow(
@@ -568,7 +544,7 @@ class _MyDashboardState extends State<MyDashboard> {
                   Expanded(
                     flex: 2,
                     child: _buildCardContainer(
-                      title: "Tỷ Lệ Trạng Thái Đơn",
+                      title: "Tỷ lệ trạng thái đơn",
                       child: Column(
                         children: [
                           SizedBox(
