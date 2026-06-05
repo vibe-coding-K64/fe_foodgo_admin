@@ -502,8 +502,15 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
     final isRejected = store.approvalStatus == 'rejected';
     final isApproved = store.approvalStatus == 'approved';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return InkWell(
+      onTap: () {
+        if (widget.onNavigate != null) {
+          widget.onNavigate!('/store/stats?id=${store.id}&name=${Uri.encodeComponent(store.name)}');
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -691,7 +698,7 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
           ],
         ],
       ),
-    );
+    ));
   }
 
   Widget _approvalBadge(Store store, bool isOpen) {
@@ -1272,7 +1279,7 @@ class _StoreReviewsDialogContentState extends State<StoreReviewsDialogContent> {
                             String dateStr = 'Mới đây';
                             if (createdAt != null) {
                               try {
-                                final parsed = DateTime.parse(createdAt.toString());
+                                final parsed = DateTime.parse(createdAt.toString()).toLocal();
                                 dateStr = DateFormat('dd/MM/yyyy HH:mm').format(parsed);
                               } catch (_) {}
                             }

@@ -61,15 +61,18 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
   }
 
   Future<void> _markAsRead(String id, int index) async {
+    if (index < 0 || index >= _notifications.length) return;
     try {
       setState(() {
         _notifications[index]['isRead'] = true;
       });
       await _notificationService.markAsRead(id);
     } catch (e) {
-      setState(() {
-        _notifications[index]['isRead'] = false;
-      });
+      if (index >= 0 && index < _notifications.length) {
+        setState(() {
+          _notifications[index]['isRead'] = false;
+        });
+      }
       _showToast('Lỗi khi đánh dấu đã đọc: $e', Colors.red);
     }
   }
@@ -90,6 +93,10 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
   }
 
   Future<void> _delete(String id, int index) async {
+    if (index < 0 || index >= _notifications.length) {
+      _showToast('Không tìm thấy thông báo', Colors.red);
+      return;
+    }
     try {
       setState(() {
         _notifications.removeAt(index);
@@ -116,16 +123,17 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     if (_tabController.index == 0) return _notifications; // Tất cả
 
     return _notifications.where((n) {
-      final type = n['type']?.toString() ?? '';
+      final rawType = n['type'];
+      final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
       if (_tabController.index == 1) {
-        // Đơn hàng
-        return type == 'order' || type == '11' || type == '1' || type == '13';
+        // Đơn hàng: 11, 12, 13 (Driver), 21, 22, 23 (Merchant)
+        return typeInt != null && [11, 12, 13, 21, 22, 23].contains(typeInt);
       } else if (_tabController.index == 2) {
-        // Tài chính
-        return type == 'payment' || type == '12' || type == '41' || type == 'wallet';
+        // Tài chính: 41 (Wallet/Withdrawal update)
+        return typeInt != null && [41].contains(typeInt);
       } else if (_tabController.index == 3) {
-        // Đánh giá
-        return type == 'review' || type == '31';
+        // Đánh giá: 31 (New review)
+        return typeInt != null && [31].contains(typeInt);
       }
       return true;
     }).toList();
@@ -147,47 +155,41 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     }
   }
 
-  IconData _typeIcon(String type) {
-    switch (type) {
-      case 'order':
-      case '11':
-      case '1':
+  IconData _typeIcon(dynamic rawType) {
+    final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
+    switch (typeInt) {
+      case 11:
+      case 12:
+      case 21:
         return Icons.shopping_bag_outlined;
-      case 'payment':
-      case '12':
-      case '41':
+      case 22:
+      case 41:
         return Icons.account_balance_wallet_outlined;
-      case 'review':
-      case '31':
+      case 31:
         return Icons.star_outline;
-      case 'cancel':
-      case '13':
+      case 13:
+      case 23:
         return Icons.cancel_outlined;
-      case 'wallet':
-        return Icons.savings_outlined;
       default:
         return Icons.notifications_outlined;
     }
   }
 
-  Color _typeColor(String type) {
-    switch (type) {
-      case 'order':
-      case '11':
-      case '1':
+  Color _typeColor(dynamic rawType) {
+    final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
+    switch (typeInt) {
+      case 11:
+      case 12:
+      case 21:
         return const Color(0xFFFF6B35);
-      case 'payment':
-      case '12':
-      case '41':
+      case 22:
+      case 41:
         return Colors.green;
-      case 'review':
-      case '31':
+      case 31:
         return Colors.amber;
-      case 'cancel':
-      case '13':
+      case 13:
+      case 23:
         return Colors.red;
-      case 'wallet':
-        return Colors.purple;
       default:
         return Colors.blue;
     }
@@ -202,9 +204,10 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
     }
 
     final orderId = n['orderId'] as String? ?? n['referenceId'] as String? ?? '';
-    final type = n['type']?.toString() ?? '';
+    final rawType = n['type'];
+    final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
 
-    if (orderId.isNotEmpty && (type == 'order' || type == '11' || type == '1' || type == '13') && widget.onNavigate != null) {
+    if (orderId.isNotEmpty && typeInt != null && [11, 12, 13, 21, 22, 23].contains(typeInt) && widget.onNavigate != null) {
       try {
         showDialog(
           context: context,
@@ -212,20 +215,218 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
           builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35))),
         );
         final order = await _orderApiService.getOrderById(orderId);
-        Navigator.pop(context); // close loading dialog
+        if (context.mounted) {
+          Navigator.pop(context); // close loading dialog
+        }
         if (order != null) {
           OrderDetailPage.currentOrder = order;
           widget.onNavigate!('/orders/detail');
         }
       } catch (e) {
-        Navigator.pop(context); // close loading
+        if (context.mounted) {
+          Navigator.pop(context); // close loading
+        }
         _showToast('Lỗi tải chi tiết đơn hàng: $e', Colors.red);
       }
-    } else if ((type == '41' || type == '12' || type == 'payment' || type == 'wallet') && widget.onNavigate != null) {
+    } else if (typeInt == 41 && widget.onNavigate != null) {
       widget.onNavigate!('/finance/withdrawal');
-    } else if ((type == 'review' || type == '31') && widget.onNavigate != null) {
+    } else if (typeInt == 31 && widget.onNavigate != null) {
       widget.onNavigate!('/reviews');
     }
+  }
+
+  void _showBroadcastDialog() {
+    final titleController = TextEditingController();
+    final bodyController = TextEditingController();
+    String target = 'all'; // default target
+    bool isSending = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B35).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.campaign_rounded, color: Color(0xFFFF6B35)),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    'Gửi thông báo toàn sàn',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Color(0xFF1E1E2D),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 480,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Gửi thông báo đẩy (push notification) tới ứng dụng của khách hàng và tài xế qua hệ thống FCM.',
+                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Target Dropdown
+                    const Text(
+                      'Đối tượng nhận',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: target,
+                          isExpanded: true,
+                          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFFFF6B35)),
+                          items: const [
+                            DropdownMenuItem(value: 'all', child: Text('Tất cả mọi người (Khách hàng & Tài xế)')),
+                            DropdownMenuItem(value: 'customers', child: Text('Chỉ Khách hàng (Customer App)')),
+                            DropdownMenuItem(value: 'drivers', child: Text('Chỉ Tài xế (Driver App)')),
+                            DropdownMenuItem(value: 'merchants', child: Text('Chỉ Cửa hàng (Merchant)')),
+                          ],
+                          onChanged: isSending ? null : (val) {
+                            if (val != null) {
+                              setDialogState(() {
+                                target = val;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Title Field
+                    const Text(
+                      'Tiêu đề thông báo',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: titleController,
+                      enabled: !isSending,
+                      decoration: InputDecoration(
+                        hintText: 'Nhập tiêu đề...',
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Body Field
+                    const Text(
+                      'Nội dung thông báo',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: bodyController,
+                      enabled: !isSending,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Nhập dung chi tiết cần thông báo...',
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFFF6B35), width: 1.5),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actionsPadding: const EdgeInsets.only(right: 16, bottom: 16, left: 16),
+              actions: [
+                TextButton(
+                  onPressed: isSending ? null : () => Navigator.pop(context),
+                  child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: isSending
+                      ? null
+                      : () async {
+                          final title = titleController.text.trim();
+                          final body = bodyController.text.trim();
+                          if (title.isEmpty || body.isEmpty) {
+                            _showToast('Vui lòng điền đầy đủ thông tin', Colors.red);
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isSending = true;
+                          });
+
+                          try {
+                            await _notificationService.broadcastNotification(
+                              title: title,
+                              body: body,
+                              target: target,
+                            );
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _showToast('Đã gửi thông báo thành công!', Colors.green);
+                              _loadNotifications();
+                            }
+                          } catch (e) {
+                            setDialogState(() {
+                              isSending = false;
+                            });
+                            _showToast('Gửi thông báo thất bại: $e', Colors.red);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF6B35),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                  child: isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Gửi ngay'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -260,7 +461,20 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             ),
             Row(
               children: [
-                if (unreadCount > 0)
+                ElevatedButton.icon(
+                  onPressed: _showBroadcastDialog,
+                  icon: const Icon(Icons.campaign_outlined, size: 18),
+                  label: const Text('Gửi thông báo toàn sàn'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E1E2D),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                if (unreadCount > 0) ...[
                   ElevatedButton.icon(
                     onPressed: _markAllAsRead,
                     icon: const Icon(Icons.done_all, size: 18),
@@ -273,7 +487,8 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
                       elevation: 0,
                     ),
                   ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
+                ],
                 IconButton(
                   onPressed: _loadNotifications,
                   icon: const Icon(Icons.refresh, color: Color(0xFFFF6B35)),
@@ -309,9 +524,27 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
             unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 14),
             tabs: [
               Tab(text: 'Tất cả (${_notifications.length})'),
-              Tab(text: 'Đơn hàng (${_notifications.where((n) => ['order', '11', '1', '13'].contains(n['type']?.toString())).length})'),
-              Tab(text: 'Tài chính (${_notifications.where((n) => ['payment', '12', '41', 'wallet'].contains(n['type']?.toString())).length})'),
-              Tab(text: 'Đánh giá (${_notifications.where((n) => ['review', '31'].contains(n['type']?.toString())).length})'),
+              Tab(
+                text: 'Đơn hàng (${_notifications.where((n) {
+                  final rawType = n['type'];
+                  final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
+                  return typeInt != null && [11, 12, 13, 21, 22, 23].contains(typeInt);
+                }).length})',
+              ),
+              Tab(
+                text: 'Tài chính (${_notifications.where((n) {
+                  final rawType = n['type'];
+                  final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
+                  return typeInt != null && [41].contains(typeInt);
+                }).length})',
+              ),
+              Tab(
+                text: 'Đánh giá (${_notifications.where((n) {
+                  final rawType = n['type'];
+                  final typeInt = rawType is int ? rawType : (rawType != null ? int.tryParse(rawType.toString()) : null);
+                  return typeInt != null && [31].contains(typeInt);
+                }).length})',
+              ),
             ],
           ),
         ),
@@ -373,9 +606,9 @@ class _NotificationsPageState extends State<NotificationsPage> with SingleTicker
         final n = filteredList[index];
         final id = n['id'] as String? ?? '';
         final isRead = n['isRead'] == true;
-        final typeStr = n['type']?.toString() ?? '';
-        final typeColor = _typeColor(typeStr);
-        final typeIcon = _typeIcon(typeStr);
+        final rawType = n['type'];
+        final typeColor = _typeColor(rawType);
+        final typeIcon = _typeIcon(rawType);
         final title = n['title'] as String? ?? 'Thông báo';
         final body = n['body'] as String? ?? '';
         final timeStr = n['createdAt'] != null ? _formatTime(n['createdAt'].toString()) : '';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/category_model.dart';
 import '../../data/services/category_api_service.dart';
+import '../widgets/image_picker_widget.dart';
 
 class MenuCategoryPage extends StatefulWidget {
   final Function(String)? onNavigate;
@@ -183,7 +184,6 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                       SizedBox(width: 60, child: Center(child: Text('STT', style: TextStyle(fontWeight: FontWeight.bold)))),
                       SizedBox(width: 24),
                       Expanded(child: Text('Tên danh mục', style: TextStyle(fontWeight: FontWeight.bold))),
-                      SizedBox(width: 120, child: Text('Icon/Ảnh', style: TextStyle(fontWeight: FontWeight.bold))),
                       SizedBox(width: 100, child: Text('Thứ tự', style: TextStyle(fontWeight: FontWeight.bold))),
                       SizedBox(width: 120, child: Text('Thao tác', style: TextStyle(fontWeight: FontWeight.bold))),
                     ],
@@ -255,10 +255,6 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
               ],
             ),
-          ),
-          SizedBox(
-            width: 120,
-            child: Text(cat.icon ?? 'N/A', style: const TextStyle(color: Colors.blueGrey, fontSize: 13)),
           ),
           SizedBox(
             width: 100,
@@ -364,40 +360,31 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                         onSaved: (v) => order = int.tryParse(v ?? '0') ?? 0,
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        initialValue: icon,
-                        decoration: InputDecoration(
-                          labelText: 'Mã Icon (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFFF6B35)),
-                          ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Mã Icon không được để trống';
-                          return null;
+                      const SizedBox(height: 8),
+                      ImagePickerWidget(
+                        initialImageUrl: imageUrl,
+                        folder: 'categories',
+                        label: 'Chọn ảnh danh mục (*)',
+                        width: 140,
+                        height: 140,
+                        onImageUploaded: (url) {
+                          setDialogState(() {
+                            imageUrl = url;
+                          });
                         },
-                        onSaved: (v) => icon = v!.trim(),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        initialValue: imageUrl,
-                        decoration: InputDecoration(
-                          labelText: 'Link ảnh đại diện (URL) (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(color: Color(0xFFFF6B35)),
-                          ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Link ảnh không được để trống';
-                          if (!v.startsWith('http://') && !v.startsWith('https://')) return 'Phải bắt đầu bằng http:// hoặc https://';
-                          return null;
+                        onImageCleared: () {
+                          setDialogState(() {
+                            imageUrl = '';
+                          });
                         },
-                        onSaved: (v) => imageUrl = v!.trim(),
                       ),
+                      if (imageUrl.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Vui lòng chọn hoặc upload ảnh danh mục',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -410,6 +397,12 @@ class _MenuCategoryPageState extends State<MenuCategoryPage> {
                 onPressed: isSaving ? null : () async {
                   if (formKey.currentState!.validate()) {
                     formKey.currentState!.save();
+                    
+                    // Auto generate icon code from name if empty
+                    if (icon.trim().isEmpty) {
+                      icon = name.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
+                      if (icon.isEmpty) icon = 'category_icon';
+                    }
                     
                     final newCat = Category(
                       id: category?.id,

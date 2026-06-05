@@ -38,6 +38,8 @@ dependencies:
   dio: ^5.9.2
   firebase_auth: ^6.5.1
   shared_preferences: ^2.5.5
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:

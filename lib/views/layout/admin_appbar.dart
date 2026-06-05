@@ -208,6 +208,7 @@ class _AdminAppBarState extends State<AdminAppBar> {
               'title': 'Đơn hàng mới: #$orderCode',
               'body': 'Khách hàng $customerName vừa đặt đơn hàng trị giá ${finalAmount.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]}.")}đ.',
               'isRead': false,
+              'orderId': orderId,
               'createdAt': order.createdAt?.toIso8601String() ?? DateTime.now().toIso8601String(),
             };
             newEvents.add(notif);
@@ -226,6 +227,7 @@ class _AdminAppBarState extends State<AdminAppBar> {
                 'title': 'Cập nhật đơn hàng #$orderCode',
                 'body': 'Trạng thái chuyển sang: "$currentStatus".',
                 'isRead': false,
+                'orderId': orderId,
                 'createdAt': DateTime.now().toIso8601String(),
               };
               newEvents.add(notif);
@@ -823,22 +825,27 @@ class _NotificationDropdownContentState extends State<_NotificationDropdownConte
           if (Navigator.canPop(context)) {
             Navigator.pop(context); // Close dropdown popup
           }
-          final orderId = n['orderId'] as String? ?? '';
           final type = typeStr;
-          if (orderId.isNotEmpty && widget.onNavigate != null) {
-            try {
-              final order = await widget.orderApiService.getOrderById(orderId);
-              if (order != null) {
-                OrderDetailPage.currentOrder = order;
-                widget.onNavigate!('/orders/detail');
-              }
-            } catch (e) {
-              debugPrint("Lỗi tải chi tiết đơn hàng: $e");
-            }
-          } else if ((type == '41' || type == 'payment') && widget.onNavigate != null) {
+          final orderId = n['orderId'] as String? ?? '';
+          final referenceId = n['referenceId'] as String? ?? '';
+
+          if ((type == '41' || type == 'payment') && widget.onNavigate != null) {
             widget.onNavigate!('/finance/withdrawal');
           } else if ((type == 'review' || type == '31') && widget.onNavigate != null) {
             widget.onNavigate!('/reviews');
+          } else {
+            final effectiveOrderId = orderId.isNotEmpty ? orderId : referenceId;
+            if (effectiveOrderId.isNotEmpty && widget.onNavigate != null) {
+              try {
+                final order = await widget.orderApiService.getOrderById(effectiveOrderId);
+                if (order != null) {
+                  OrderDetailPage.currentOrder = order;
+                  widget.onNavigate!('/orders/detail');
+                }
+              } catch (e) {
+                debugPrint("Lỗi tải chi tiết đơn hàng: $e");
+              }
+            }
           }
         },
         child: Padding(

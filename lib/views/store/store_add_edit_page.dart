@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/store_model.dart';
 import '../../data/services/store_api_service.dart';
 import '../../data/services/auth_service.dart';
+import '../widgets/image_picker_widget.dart';
 
 /// Form dùng chung cho thêm/sửa thông tin quán
 class StoreFormPage extends StatefulWidget {
@@ -162,14 +163,77 @@ class _StoreFormPageState extends State<StoreFormPage> {
                 ]),
                 const SizedBox(height: 20),
                 _buildSection('Hình ảnh', [
-                  _field('Link ảnh bìa (Cover)', _coverUrlCtrl, Icons.link, required: true, validator: (v) {
-                    if (v != null && v.isNotEmpty && !v.trim().startsWith('http')) return 'Đường dẫn phải bắt đầu bằng http:// hoặc https://';
-                    return null;
-                  }),
-                  _field('Link Logo quán', _logoUrlCtrl, Icons.link, required: true, validator: (v) {
-                    if (v != null && v.isNotEmpty && !v.trim().startsWith('http')) return 'Đường dẫn phải bắt đầu bằng http:// hoặc https://';
-                    return null;
-                  }),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Ảnh bìa (Cover) (*)',
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E1E2D)),
+                            ),
+                            const SizedBox(height: 8),
+                            ImagePickerWidget(
+                              initialImageUrl: _coverUrlCtrl.text,
+                              folder: 'stores/covers',
+                              label: 'Chọn ảnh bìa',
+                              width: double.infinity,
+                              height: 150,
+                              onImageUploaded: (url) {
+                                setState(() {
+                                  _coverUrlCtrl.text = url;
+                                });
+                              },
+                              onImageCleared: () {
+                                setState(() {
+                                  _coverUrlCtrl.text = '';
+                                });
+                              },
+                            ),
+                            if (_coverUrlCtrl.text.isEmpty) ...[
+                              const SizedBox(height: 4),
+                              const Text('Vui lòng upload ảnh bìa', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Logo quán (*)',
+                              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1E1E2D)),
+                            ),
+                            const SizedBox(height: 8),
+                            ImagePickerWidget(
+                              initialImageUrl: _logoUrlCtrl.text,
+                              folder: 'stores/logos',
+                              label: 'Chọn logo',
+                              width: double.infinity,
+                              height: 150,
+                              onImageUploaded: (url) {
+                                setState(() {
+                                  _logoUrlCtrl.text = url;
+                                });
+                              },
+                              onImageCleared: () {
+                                setState(() {
+                                  _logoUrlCtrl.text = '';
+                                });
+                              },
+                            ),
+                            if (_logoUrlCtrl.text.isEmpty) ...[
+                              const SizedBox(height: 4),
+                              const Text('Vui lòng upload logo', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ]),
                 const SizedBox(height: 20),
                 _buildSection('Tài khoản ngân hàng nhận tiền', [

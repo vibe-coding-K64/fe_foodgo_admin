@@ -17,6 +17,7 @@ import '../banners/banners_page.dart';
 import '../users/users_page.dart';
 import '../store/stores_admin_page.dart';
 import '../drivers/drivers_page.dart';
+import '../notifications/notifications_page.dart';
 
 class AdminLayout extends StatefulWidget { 
   final Widget child; 
@@ -48,6 +49,7 @@ class _AdminLayoutState extends State<AdminLayout> {
       '/settings',
       '/menu-categories',
       '/banners',
+      '/notifications',
       '/orders',
       '/vouchers',
       '/reviews',
@@ -76,7 +78,7 @@ class _AdminLayoutState extends State<AdminLayout> {
   Widget _buildPageByIndex(int index) {
     switch (index) {
       case 0:
-        return const MyDashboard();
+        return MyDashboard(onNavigate: widget.onNavigate);
       case 1:
         return UsersPage(onNavigate: widget.onNavigate);
       case 2:
@@ -90,18 +92,20 @@ class _AdminLayoutState extends State<AdminLayout> {
       case 6:
         return BannersPage(onNavigate: widget.onNavigate);
       case 7:
-        return OrdersPage(onNavigate: widget.onNavigate);
+        return NotificationsPage(onNavigate: widget.onNavigate);
       case 8:
-        return VouchersPage(onNavigate: widget.onNavigate);
+        return OrdersPage(onNavigate: widget.onNavigate);
       case 9:
-        return const ReviewsPage();
+        return VouchersPage(onNavigate: widget.onNavigate);
       case 10:
-        return const TransactionPage();
+        return const ReviewsPage();
       case 11:
-        return const WithdrawalPage();
+        return const TransactionPage();
       case 12:
-        return const ReportTicketsPage();
+        return const WithdrawalPage();
       case 13:
+        return const ReportTicketsPage();
+      case 14:
         return ProfilePage(onNavigate: widget.onNavigate);
       default:
         return const SizedBox.shrink();

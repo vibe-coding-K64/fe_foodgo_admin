@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/banner_model.dart';
 import '../../data/services/banner_api_service.dart';
+import '../widgets/image_picker_widget.dart';
 
 class BannersPage extends StatefulWidget {
   final Function(String)? onNavigate;
@@ -358,19 +359,31 @@ class _BannersPageState extends State<BannersPage> {
                         },
                         onSaved: (v) => title = v!.trim(),
                       ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        initialValue: imageUrl,
-                        decoration: InputDecoration(
-                          labelText: 'Đường dẫn ảnh đại diện (URL) (*)',
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Đường dẫn ảnh không được để trống';
-                          return null;
+                      const SizedBox(height: 8),
+                      ImagePickerWidget(
+                        initialImageUrl: imageUrl,
+                        folder: 'banners',
+                        label: 'Chọn ảnh Banner (*)',
+                        width: 320,
+                        height: 160,
+                        onImageUploaded: (url) {
+                          setDialogState(() {
+                            imageUrl = url;
+                          });
                         },
-                        onSaved: (v) => imageUrl = v!.trim(),
+                        onImageCleared: () {
+                          setDialogState(() {
+                            imageUrl = '';
+                          });
+                        },
                       ),
+                      if (imageUrl.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Vui lòng chọn hoặc upload ảnh banner',
+                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Row(
                         children: [
