@@ -141,8 +141,12 @@ class _SidebarState extends State<Sidebar> {
                 _section('Hệ thống'),
                 if (_hasPermission('/dashboard'))
                   _item(Icons.dashboard_outlined, 'Bảng điều khiển', '/dashboard'),
+                if (_hasPermission('/users'))
+                  _item(Icons.people_outline, 'Người dùng & Phân quyền', '/users'),
                 if (_hasPermission('/stores'))
                   _item(Icons.store_outlined, 'Cửa hàng', '/stores'),
+                if (_hasPermission('/drivers'))
+                  _item(Icons.two_wheeler_rounded, 'Tài xế', '/drivers'),
                 _item(Icons.settings_outlined, 'Cấu hình hệ thống', '/settings'),
 
                 // Nội dung
