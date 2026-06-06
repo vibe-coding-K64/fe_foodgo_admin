@@ -429,7 +429,7 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                     maxCrossAxisExtent: 380,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.7,
+                    childAspectRatio: 1.55,
                   ),
                   itemCount: stores.length,
                   itemBuilder: (_, i) => _storeCard(stores[i]),
@@ -596,13 +596,17 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
                           children: [
                             const Icon(Icons.star_rounded, size: 16, color: Colors.amber),
                             const SizedBox(width: 3),
-                            Text(
-                              '${store.rating?.toStringAsFixed(1) ?? '0.0'} (${store.reviewCount ?? 0} đánh giá)',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFFF6B35),
-                                decoration: TextDecoration.underline,
+                            Flexible(
+                              child: Text(
+                                '${store.rating?.toStringAsFixed(1) ?? '0.0'} (${store.reviewCount ?? 0} đánh giá)',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFFF6B35),
+                                  decoration: TextDecoration.underline,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -616,9 +620,9 @@ class _StoresAdminPageState extends State<StoresAdminPage> {
               _approvalBadge(store, isOpen),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           // Bottom row: description + actions/toggle/reason
           Row(
             children: [
