@@ -148,7 +148,7 @@ class _SidebarState extends State<Sidebar> {
                 // Nội dung
                 _section('Nội dung'),
                 _item(Icons.category_outlined, 'Danh mục', '/menu-categories'),
-                _item(Icons.photo_library_outlined, 'Ảnh bìa quảng cáo', '/banners'),
+                // _item(Icons.photo_library_outlined, 'Ảnh bìa quảng cáo', '/banners'),
                 _item(Icons.notifications_active_outlined, 'Thông báo hệ thống', '/notifications'),
 
                 // Kinh doanh
