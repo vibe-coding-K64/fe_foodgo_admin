@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../data/models/voucher_model.dart';
+import '../../data/models/store_model.dart';
 import '../../data/services/voucher_api_service.dart';
+import '../../data/services/store_api_service.dart';
 import '../widgets/image_picker_widget.dart';
 
 /// Form dùng chung thêm/sửa voucher
@@ -36,9 +38,16 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
   DateTime? _expiryDate;
   bool _isSaving = false;
 
+  final StoreApiService _storeApiService = StoreApiService();
+  bool _isSystemVoucher = true;
+  String? _selectedStoreId;
+  List<Store> _stores = [];
+  bool _isLoadingStores = false;
+
   @override
   void initState() {
     super.initState();
+    _loadStores();
     if (widget.isEdit && VoucherFormPage.selectedVoucherToEdit != null) {
       final v = VoucherFormPage.selectedVoucherToEdit!;
       _codeCtrl.text = v.code;
@@ -55,6 +64,34 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       _pointsCtrl.text = v.pointsRequired.toString();
       _remainingCtrl.text = v.remaining.toString();
       _isFreeship = v.isFreeship;
+
+      // Handle storeId
+      if (v.storeId == null || v.storeId!.isEmpty || v.storeId == 'system') {
+        _isSystemVoucher = true;
+        _selectedStoreId = null;
+      } else {
+        _isSystemVoucher = false;
+        _selectedStoreId = v.storeId;
+      }
+    }
+  }
+
+  Future<void> _loadStores() async {
+    setState(() => _isLoadingStores = true);
+    try {
+      final stores = await _storeApiService.getAllStores();
+      setState(() {
+        _stores = stores.where((s) => s.approvalStatus == 'approved').toList();
+        if (!_isSystemVoucher && _selectedStoreId != null) {
+          final exists = _stores.any((s) => s.id == _selectedStoreId);
+          if (!exists) {
+            _selectedStoreId = _stores.isNotEmpty ? _stores.first.id : null;
+          }
+        }
+        _isLoadingStores = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingStores = false);
     }
   }
 
@@ -97,6 +134,25 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                           if (v != null && v.contains(' ')) return 'Mã không được chứa khoảng trắng';
                           return null;
                         }),
+                        // Phạm vi áp dụng
+                        const Text('Phạm vi áp dụng', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _scopeCard(true, 'Hệ thống (Toàn sàn)', Icons.public),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _scopeCard(false, 'Cửa hàng cụ thể', Icons.storefront),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (!_isSystemVoucher) ...[
+                          _buildStoreDropdown(),
+                          const SizedBox(height: 16),
+                        ],
                         // Loại giảm giá
                         const Text('Loại giảm giá', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
                         const SizedBox(height: 8),
@@ -472,9 +528,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       
       try {
         final newVoucher = Voucher(
-          storeId: widget.isEdit && VoucherFormPage.selectedVoucherToEdit != null
-              ? VoucherFormPage.selectedVoucherToEdit!.storeId
-              : 'system',
+          storeId: _isSystemVoucher ? 'system' : _selectedStoreId,
           code: _codeCtrl.text.trim().toUpperCase(),
           type: _discountType,
           value: double.parse(_valueCtrl.text.trim()),
@@ -507,5 +561,78 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
         if (mounted) setState(() => _isSaving = false);
       }
     }
+  }
+
+  Widget _scopeCard(bool isSystem, String label, IconData icon) {
+    final isSelected = _isSystemVoucher == isSystem;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _isSystemVoucher = isSystem;
+          if (isSystem) {
+            _selectedStoreId = null;
+          } else if (_stores.isNotEmpty && _selectedStoreId == null) {
+            _selectedStoreId = _stores.first.id;
+          }
+        });
+      },
+      borderRadius: BorderRadius.circular(10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFFFF3E0) : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isSelected ? const Color(0xFFFF6B35) : Colors.grey.shade300, width: isSelected ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? const Color(0xFFFF6B35) : Colors.grey, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(label, style: TextStyle(color: isSelected ? const Color(0xFFFF6B35) : Colors.grey, fontWeight: FontWeight.w500, fontSize: 13))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStoreDropdown() {
+    if (_isLoadingStores) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35))),
+      );
+    }
+    if (_stores.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Text('Không tìm thấy cửa hàng nào đã được duyệt trong hệ thống', style: TextStyle(color: Colors.red, fontSize: 13)),
+      );
+    }
+    
+    if (_selectedStoreId == null && _stores.isNotEmpty) {
+      _selectedStoreId = _stores.first.id;
+    }
+    
+    return DropdownButtonFormField<String>(
+      value: _selectedStoreId,
+      items: _stores.map((s) => DropdownMenuItem<String>(
+        value: s.id,
+        child: Text(s.name),
+      )).toList(),
+      onChanged: (val) => setState(() => _selectedStoreId = val),
+      decoration: InputDecoration(
+        labelText: 'Chọn cửa hàng áp dụng',
+        prefixIcon: const Icon(Icons.storefront_outlined, color: Color(0xFFFF6B35), size: 20),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFFF6B35))),
+        filled: true,
+        fillColor: const Color(0xFFF9F9F9),
+      ),
+      validator: (v) {
+        if (!_isSystemVoucher && v == null) return 'Vui lòng chọn cửa hàng';
+        return null;
+      },
+    );
   }
 }

@@ -164,8 +164,8 @@ class _SidebarState extends State<Sidebar> {
                 _item(Icons.account_balance_wallet_outlined, 'Duyệt rút tiền', '/finance/withdrawal'),
 
                 // Hỗ trợ
-                _section('Hỗ trợ'),
-                _item(Icons.chat_bubble_outline, 'Khiếu nại & báo cáo', '/report-tickets'),
+                // _section('Hỗ trợ'),
+                // _item(Icons.chat_bubble_outline, 'Khiếu nại & báo cáo', '/report-tickets'),
               ],
             ),
           ),

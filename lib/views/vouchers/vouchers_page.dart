@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/voucher_model.dart';
 import '../../data/services/voucher_api_service.dart';
+import '../../data/services/store_api_service.dart';
 import 'voucher_add_edit_page.dart';
 
 class VouchersPage extends StatefulWidget {
@@ -13,6 +14,8 @@ class VouchersPage extends StatefulWidget {
 
 class _VouchersPageState extends State<VouchersPage> {
   final VoucherApiService _apiService = VoucherApiService();
+  final StoreApiService _storeApiService = StoreApiService();
+  Map<String, String> _storeMap = {};
   List<Voucher> _vouchers = [];
   bool _isLoading = true;
 
@@ -24,8 +27,10 @@ class _VouchersPageState extends State<VouchersPage> {
 
   Future<void> _fetchVouchers() async {
     try {
+      final stores = await _storeApiService.getAllStores();
       final vouchers = await _apiService.getAllVouchers();
       setState(() {
+        _storeMap = { for (var s in stores) if (s.id != null) s.id! : s.name };
         _vouchers = vouchers;
         _isLoading = false;
       });
@@ -209,6 +214,29 @@ class _VouchersPageState extends State<VouchersPage> {
                             color: v.isActive ? Colors.green : Colors.grey,
                             fontSize: 11,
                             fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    // Scope badge (System vs Store)
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: (v.storeId == null || v.storeId!.isEmpty || v.storeId == 'system') 
+                            ? const Color(0xFFFFECE5) 
+                            : const Color(0xFFE0F7FA),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        (v.storeId == null || v.storeId!.isEmpty || v.storeId == 'system') 
+                            ? 'Hệ thống' 
+                            : 'Cửa hàng: ${_storeMap[v.storeId] ?? v.storeId}',
+                        style: TextStyle(
+                          color: (v.storeId == null || v.storeId!.isEmpty || v.storeId == 'system') 
+                              ? const Color(0xFFFF6B35) 
+                              : const Color(0xFF00ACC1),
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     if (v.isFreeship) ...[
